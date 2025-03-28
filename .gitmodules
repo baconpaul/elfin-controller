@@ -1,0 +1,12 @@
+[submodule "libs/JUCE"]
+	path = libs/JUCE
+	url = https://github.com/juce-framework/JUCE
+[submodule "libs/sst/sst-basic-blocks"]
+	path = libs/sst/sst-basic-blocks
+	url = https://github.com/surge-synthesizer/sst-basic-blocks
+[submodule "libs/clap-juce-extensions"]
+	path = libs/clap-juce-extensions
+	url = https://github.com/free-audio/clap-juce-extensions
+[submodule "libs/sst/sst-jucegui"]
+	path = libs/sst/sst-jucegui
+	url = https://github.com/surge-synthesizer/sst-jucegui
