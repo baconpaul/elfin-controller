@@ -1,6 +1,18 @@
+/*
+ * Elfin Controller
+ *
+ * A small controller plugin for the Elfin 04 Polysynth
+ *
+ * Copyright 2024-2025, Paul Walker and Various authors, as described in the github
+ * transaction log.
+ *
+ * This source repo is released under the MIT license
+ *
+ * The source code and license are at https://github.com/baconpaul/elfin-controller
+ */
 
-#ifndef ElfinController_PROCESSOR_H
-#define ElfinController_PROCESSOR_H
+#ifndef ELFIN_CONTROLLER_ELFINPROCESSOR_H
+#define ELFIN_CONTROLLER_ELFINPROCESSOR_H
 
 #include "juce_audio_processors/juce_audio_processors.h"
 

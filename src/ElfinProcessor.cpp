@@ -1,3 +1,15 @@
+/*
+ * Elfin Controller
+ *
+ * A small controller plugin for the Elfin 04 Polysynth
+ *
+ * Copyright 2024-2025, Paul Walker and Various authors, as described in the github
+ * transaction log.
+ *
+ * This source repo is released under the MIT license
+ *
+ * The source code and license are at https://github.com/baconpaul/elfin-controller
+ */
 #include <type_traits>
 
 #include "ElfinProcessor.h"
