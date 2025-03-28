@@ -97,6 +97,8 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     };
     LockFreeQueue<ResetTypeMsg> resetType;
 
+    int64_t sampleCount{0};
+
     std::atomic<bool> refreshUI{false}, rebuildUI{false};
 
     //==============================================================================

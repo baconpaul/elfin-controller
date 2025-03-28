@@ -42,6 +42,22 @@ void ElfinControllerAudioProcessor::releaseResources() { isPlaying = false; }
 void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                                  juce::MidiBuffer &midiMessages)
 {
+    if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
+    {
+        std::cout << "NOTE ON " << sampleCount << std::endl;
+        midiMessages.addEvent(juce::MidiMessage::noteOn(1, 60, 0.8f), 0);
+    }
+    else if (sampleCount <= 24000 && sampleCount + buffer.getNumSamples() > 24000)
+    {
+        std::cout << "Note Off " << sampleCount << std::endl;
+        midiMessages.addEvent(juce::MidiMessage::noteOff(1, 60, 0.8f), 0);
+    }
+    sampleCount += buffer.getNumSamples();
+    if (sampleCount > 48000)
+    {
+        sampleCount -= 48000 + buffer.getNumSamples();
+
+    }
 }
 
 //==============================================================================
