@@ -81,12 +81,13 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 target_sources(${PROJECT_NAME} PRIVATE
   src/ElfinEditor.cpp
   src/ElfinProcessor.cpp
+  src/ElfinMainPanel.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     juce::juce_audio_utils
     juce::juce_audio_processors
-
+    sst-jucegui
 )
 
 clap_juce_extensions_plugin(TARGET ${PROJECT_NAME}

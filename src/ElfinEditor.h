@@ -3,6 +3,7 @@
 
 #include "ElfinProcessor.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+#include "ElfinMainPanel.h"
 
 class ElfinControllerAudioProcessorEditor : public juce::AudioProcessorEditor, juce::AsyncUpdater
 {
@@ -10,20 +11,12 @@ class ElfinControllerAudioProcessorEditor : public juce::AudioProcessorEditor, j
     ElfinControllerAudioProcessorEditor(ElfinControllerAudioProcessor &);
     ~ElfinControllerAudioProcessorEditor();
 
+    std::unique_ptr<ElfinMainPanel> mainPanel;
     //==============================================================================
-    void paint(juce::Graphics &) override;
     void resized() override;
     // bool keyPressed(const juce::KeyPress &) override;
 
     virtual void handleAsyncUpdate() override;
-
-    std::string getCurrentCollection()
-    {
-        return processor.properties->getValue("collection", "Recommended").toStdString();
-    }
-    void setCurrentCollection(const std::string &s);
-    std::string allCollection{"All"};
-    std::string favoritesCollection{"Favorites"};
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

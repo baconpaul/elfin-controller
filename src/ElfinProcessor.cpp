@@ -44,7 +44,7 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
 {
     if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
     {
-        std::cout << "NOTE ON " << sampleCount << std::endl;
+        std::cout << "Note On" << sampleCount << std::endl;
         auto r = rand() % 127;
         midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 21, r), 0);
         midiMessages.addEvent(juce::MidiMessage::noteOn(1, 60, 0.8f), 1);
@@ -58,7 +58,6 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
     if (sampleCount > 48000)
     {
         sampleCount -= 48000 + buffer.getNumSamples();
-
     }
 }
 
