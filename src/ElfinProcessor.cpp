@@ -20,17 +20,21 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-
+namespace baconpaul::elfin_controller
+{
 //==============================================================================
 ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
     : AudioProcessor(BusesProperties()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true))
 {
-    for (int i=0; i<128; ++i)
-        lastCCValue[i] = -1;
-    params[0] = new juce::AudioParameterFloat("elf_cutoff", "Cutoff", 0.0f, 1.0f, 0.5f);
-    addParameter(params[0]);
+    for (const auto &[id, cc] : elfinConfig)
+    {
+        lastPValue[id] = -1;
+        params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.0f, 1.0f, 0.5f);
+
+        addParameter(params[id]);
+    }
 }
 
 ElfinControllerAudioProcessor::~ElfinControllerAudioProcessor() {}
@@ -57,13 +61,17 @@ void ElfinControllerAudioProcessor::releaseResources() { isPlaying = false; }
 void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                                  juce::MidiBuffer &midiMessages)
 {
-
-    if (params[0]->get() != lastCCValue[0])
+    for (auto &p : params)
     {
-        ELFLOG("Cutoff changed to " << params[0]->get());
-        lastCCValue[0] = params[0]->get();
-        midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 16, 127 * params[0]->get()), 0);
+        if (lastPValue[p->control] != p->get())
+        {
+            ELFLOG(p->control << "(" << p->desc.midiCC << ") changed to " << p->get());
+            lastPValue[p->control] = p->get();
+            midiMessages.addEvent(
+                juce::MidiMessage::controllerEvent(1, p->desc.midiCC, 127 * p->get()), 0);
+        }
     }
+
     if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
     {
         ELFLOG("Note On " << sampleCount);
@@ -104,10 +112,11 @@ void ElfinControllerAudioProcessor::parameterValueChanged(int parameterIndex, fl
 void ElfinControllerAudioProcessor::getStateInformation(juce::MemoryBlock &destData) {}
 
 void ElfinControllerAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {}
+} // namespace baconpaul::elfin_controller
 
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 {
-    return new ElfinControllerAudioProcessor();
+    return new baconpaul::elfin_controller::ElfinControllerAudioProcessor();
 }

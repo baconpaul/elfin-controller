@@ -17,7 +17,8 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "configuration.h"
 
-
+namespace baconpaul::elfin_controller
+{
 template <typename T, int Capacity = 4096> class LockFreeQueue
 {
   public:
@@ -114,9 +115,20 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     std::atomic<bool> refreshUI{false}, rebuildUI{false};
 
     //==============================================================================
-    typedef juce::AudioParameterFloat float_param_t;
-    float lastCCValue[128];
-    float_param_t *params[10]{};
+    struct ElfinParam : juce::AudioParameterFloat
+    {
+        ElfinControl control;
+        ElfinDescription desc;
+        ElfinParam(ElfinControl c, juce::String sname, juce::String name, float min, float max,
+                   float def)
+            : control(c), juce::AudioParameterFloat(sname, name, min, max, def)
+        {
+            desc = elfinConfig.at(control);
+        }
+    };
+    typedef ElfinParam float_param_t;
+    std::array<float, nElfinParams> lastPValue;
+    std::array<float_param_t *, nElfinParams> params;
 
     juce::AudioParameterBool *bypassParam{nullptr};
     juce::AudioProcessorParameter *getBypassParameter() const override { return bypassParam; }
@@ -125,5 +137,6 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElfinControllerAudioProcessor)
 };
+} // namespace baconpaul::elfin_controller
 
 #endif // SURGE_SRC_SURGE_FX_SURGEFXPROCESSOR_H

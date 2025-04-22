@@ -19,8 +19,10 @@
 #include "sst/jucegui/data/Continuous.h"
 #include "ElfinProcessor.h"
 
+namespace baconpaul::elfin_controller
+{
 struct FilterPanel;
-
+struct OscPanel;
 
 struct ElfinMainPanel : sst::jucegui::components::WindowPanel
 {
@@ -28,7 +30,9 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     ~ElfinMainPanel();
 
     std::unique_ptr<FilterPanel> filterPanel;
+    std::unique_ptr<OscPanel> oscPanel;
 
     void resized() override;
 };
+} // namespace baconpaul::elfin_controller
 #endif // ELFINMAINPANEL_H

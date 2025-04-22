@@ -17,6 +17,8 @@
 #include "sst/jucegui/style/StyleSheet.h"
 #include "ElfinEditor.h"
 
+namespace baconpaul::elfin_controller
+{
 //==============================================================================
 ElfinControllerAudioProcessorEditor::ElfinControllerAudioProcessorEditor(
     ElfinControllerAudioProcessor &p)
@@ -38,3 +40,4 @@ void ElfinControllerAudioProcessorEditor::idle() {}
 void ElfinControllerAudioProcessorEditor::handleAsyncUpdate() {}
 
 void ElfinControllerAudioProcessorEditor::resized() { mainPanel->setBounds(getLocalBounds()); }
+} // namespace baconpaul::elfin_controller

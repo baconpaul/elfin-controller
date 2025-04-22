@@ -17,6 +17,8 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "ElfinMainPanel.h"
 
+namespace baconpaul::elfin_controller
+{
 class ElfinControllerAudioProcessorEditor : public juce::AudioProcessorEditor, juce::AsyncUpdater
 {
   public:
@@ -48,5 +50,6 @@ class ElfinControllerAudioProcessorEditor : public juce::AudioProcessorEditor, j
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElfinControllerAudioProcessorEditor)
 };
+} // namespace baconpaul::elfin_controller
 
 #endif // SURGE_SRC_SURGE_FX_SURGEFXEDITOR_H
