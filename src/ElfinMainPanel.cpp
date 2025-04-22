@@ -13,11 +13,41 @@
 
 #include "ElfinMainPanel.h"
 #include "sst/jucegui/components/NamedPanel.h"
+#include "sst/jucegui/data/Continuous.h"
 
+struct ParamSource : sst::jucegui::data::Continuous
+{
+    juce::AudioParameterFloat *par{nullptr};
+    ParamSource(juce::AudioParameterFloat *v) { par = v; }
+
+    std::string getLabel() const override { return "L"; }
+    float getValue() const override { return par->get(); }
+    void setValueFromGUI(const float &f) override { par->setValueNotifyingHost(f); }
+    void setValueFromModel(const float &f) override { }
+    float getDefaultValue() const override { return 0.5; }
+    float getMin() const override { return 0; }
+    float getMax() const override { return 1; }
+};
 struct FilterPanel : sst::jucegui::components::NamedPanel
 {
-    FilterPanel(ElfinControllerAudioProcessor &p) : NamedPanel("Filter") {}
+    std::unique_ptr<ParamSource> filterCutoffSource;
+    std::unique_ptr<sst::jucegui::components::Knob> filterCutoff;
+    FilterPanel(ElfinControllerAudioProcessor &p) : NamedPanel("Filter")
+    {
+        auto *par = p.params[0];
+        filterCutoffSource = std::make_unique<ParamSource>(par);
+        filterCutoff = std::make_unique<sst::jucegui::components::Knob>();
+        filterCutoff->setSource(filterCutoffSource.get());
+        addAndMakeVisible(*filterCutoff);
+    }
+    void resized() override
+    {
+        auto c = getContentArea();
+        filterCutoff->setBounds(c.withWidth(c.getHeight()));
+    }
 };
+
+
 
 ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
     : sst::jucegui::components::WindowPanel()

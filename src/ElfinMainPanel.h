@@ -15,9 +15,12 @@
 #define ELFIN_CONTROLLER_ELFINMAINPANEL_H
 
 #include "sst/jucegui/components/WindowPanel.h"
+#include "sst/jucegui/components/Knob.h"
+#include "sst/jucegui/data/Continuous.h"
 #include "ElfinProcessor.h"
 
 struct FilterPanel;
+
 
 struct ElfinMainPanel : sst::jucegui::components::WindowPanel
 {

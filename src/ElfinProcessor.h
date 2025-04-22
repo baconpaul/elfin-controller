@@ -15,6 +15,8 @@
 #define ELFIN_CONTROLLER_ELFINPROCESSOR_H
 
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "configuration.h"
+
 
 template <typename T, int Capacity = 4096> class LockFreeQueue
 {
@@ -62,8 +64,6 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
                                       public juce::AsyncUpdater
 {
   public:
-    static constexpr int nAWParams{10};
-
     //==============================================================================
     ElfinControllerAudioProcessor();
     ~ElfinControllerAudioProcessor();
@@ -115,6 +115,8 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
 
     //==============================================================================
     typedef juce::AudioParameterFloat float_param_t;
+    float lastCCValue[128];
+    float_param_t *params[10]{};
 
     juce::AudioParameterBool *bypassParam{nullptr};
     juce::AudioProcessorParameter *getBypassParameter() const override { return bypassParam; }
