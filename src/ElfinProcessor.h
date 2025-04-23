@@ -119,15 +119,24 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     {
         ElfinControl control;
         ElfinDescription desc;
-        ElfinParam(ElfinControl c, juce::String sname, juce::String name, float min, float max,
-                   float def)
-            : control(c), juce::AudioParameterFloat(sname, name, min, max, def)
+        ElfinParam(ElfinControl c, juce::String sname, juce::String name, float def)
+            : control(c), juce::AudioParameterFloat(
+                              sname, name, juce::NormalisableRange<float>(0.0, 1.0, 0.001), def)
         {
             desc = elfinConfig.at(control);
         }
+
+        int getCCFor(float f)
+        {
+            return std::clamp((int)std::round(convertTo0to1(f) * 127), 0, 127);
+        }
+        int getCC() { return getCCFor(get()); }
+        std::atomic<bool> invalid{false};
+
+      protected:
+        void valueChanged(float newValue) override { invalid = true; }
     };
     typedef ElfinParam float_param_t;
-    std::array<float, nElfinParams> lastPValue;
     std::array<float_param_t *, nElfinParams> params;
 
     juce::AudioParameterBool *bypassParam{nullptr};

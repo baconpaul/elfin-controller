@@ -38,13 +38,13 @@ juce_add_plugin(${PROJECT_NAME}
   NEEDS_MIDI_OUTPUT TRUE
   IS_MIDI_EFFECT TRUE
 
-  COPY_PLUGIN_AFTER_BUILD ${COPY_PLUGIN_AFTER_BUILD}
+  COPY_PLUGIN_AFTER_BUILD TRUE
 
   AU_SANDBOX_SAFE TRUE
 
 
-  #LV2_URI https://airwindows.com/lv2/airwindows-all
-  #LV2_SHARED_LIBRARY_NAME AirwindowsALL
+  LV2_URI https://hideaway/lv2/elfincontroller
+  LV2_SHARED_LIBRARY_NAME ElfinController
 
   FORMATS ${ELFCO_FORMATS}
   )

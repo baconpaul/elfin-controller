@@ -30,8 +30,7 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
 {
     for (const auto &[id, cc] : elfinConfig)
     {
-        lastPValue[id] = -1;
-        params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.0f, 1.0f, 0.5f);
+        params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.5f);
 
         addParameter(params[id]);
     }
@@ -61,22 +60,30 @@ void ElfinControllerAudioProcessor::releaseResources() { isPlaying = false; }
 void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                                  juce::MidiBuffer &midiMessages)
 {
+    static bool pc{false};
+    if (!pc)
+    {
+        pc = true;
+        ELFLOG("Program Change");
+        midiMessages.addEvent(juce::MidiMessage::programChange(1, 5), 0);
+    }
+
     for (auto &p : params)
     {
-        if (lastPValue[p->control] != p->get())
+        // FIXME atomic compare
+        if (p->invalid == true)
         {
-            ELFLOG(p->control << "(" << p->desc.midiCC << ") changed to " << p->get());
-            lastPValue[p->control] = p->get();
-            midiMessages.addEvent(
-                juce::MidiMessage::controllerEvent(1, p->desc.midiCC, 127 * p->get()), 0);
+            p->invalid = false;
+            ELFLOG(p->control << " '" << p->desc.name << "' (" << p->desc.midiCC << ") changed to "
+                              << p->getCC() << " (" << p->get() << ")");
+            midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
+                                  0);
         }
     }
 
     if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
     {
         ELFLOG("Note On " << sampleCount);
-        auto r = rand() % 127;
-        midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 21, r), 0);
         midiMessages.addEvent(juce::MidiMessage::noteOn(1, 60, 0.8f), 1);
     }
     else if (sampleCount <= 24000 && sampleCount + buffer.getNumSamples() > 24000)
@@ -84,6 +91,7 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
         ELFLOG("Note Off " << sampleCount);
         midiMessages.addEvent(juce::MidiMessage::noteOff(1, 60, 0.8f), 0);
     }
+
     sampleCount += buffer.getNumSamples();
     if (sampleCount > 96000)
     {
