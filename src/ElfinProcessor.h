@@ -3,7 +3,7 @@
  *
  * A small controller plugin for the Elfin 04 Polysynth
  *
- * Copyright 2024-2025, Paul Walker and Various authors, as described in the github
+ * Copyright 2025, Paul Walker and Various authors, as described in the github
  * transaction log.
  *
  * This source repo is released under the MIT license
@@ -137,7 +137,7 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
         void valueChanged(float newValue) override { invalid = true; }
     };
     typedef ElfinParam float_param_t;
-    std::array<float_param_t *, nElfinParams> params;
+    std::array<float_param_t *, nElfinParams> params{};
 
     juce::AudioParameterBool *bypassParam{nullptr};
     juce::AudioProcessorParameter *getBypassParameter() const override { return bypassParam; }

@@ -3,7 +3,7 @@
  *
  * A small controller plugin for the Elfin 04 Polysynth
  *
- * Copyright 2024-2025, Paul Walker and Various authors, as described in the github
+ * Copyright 2025, Paul Walker and Various authors, as described in the github
  * transaction log.
  *
  * This source repo is released under the MIT license
@@ -38,5 +38,13 @@ void setupConfiguration()
         {EG_R, {"eg_r", "EG Release", "R", 28}},
 
     };
+
+    for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
+    {
+        if (elfinConfig.find((ElfinControl)i) == elfinConfig.end())
+        {
+            ELFLOG("Unmapped control : (ElfinControl)" << i);
+        }
+    }
 }
 } // namespace baconpaul::elfin_controller

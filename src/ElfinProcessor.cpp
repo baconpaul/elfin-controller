@@ -3,7 +3,7 @@
  *
  * A small controller plugin for the Elfin 04 Polysynth
  *
- * Copyright 2024-2025, Paul Walker and Various authors, as described in the github
+ * Copyright 2025, Paul Walker and Various authors, as described in the github
  * transaction log.
  *
  * This source repo is released under the MIT license
@@ -30,6 +30,7 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
 {
     setupConfiguration();
 
+    std::fill(params.begin(), params.end(), nullptr);
     for (const auto &[id, cc] : elfinConfig)
     {
         params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.5f);
@@ -73,7 +74,7 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
     for (auto &p : params)
     {
         // FIXME atomic compare
-        if (p->invalid == true)
+        if (p && p->invalid == true)
         {
             p->invalid = false;
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
