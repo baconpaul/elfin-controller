@@ -20,12 +20,12 @@ namespace baconpaul::elfin_controller
 struct ElfinDescription
 {
     std::string streaming_name{};
-    std::string name{};
+    std::string name{}, label{};
     int32_t midiCC{-1};
 
     ElfinDescription() = default;
-    ElfinDescription(const std::string &s, const std::string &n, int32_t m)
-        : name(n), midiCC(m), streaming_name(s)
+    ElfinDescription(const std::string &s, const std::string &n, const std::string &l, int32_t m)
+        : name(n), label(l), midiCC(m), streaming_name(s)
     {
     }
 };
@@ -45,14 +45,28 @@ enum ElfinControl
 static constexpr int nElfinParams = (int)ElfinControl::numElfinControlTypes;
 
 static inline std::map<ElfinControl, ElfinDescription> elfinConfig{
-    {OSC12_TYPE, ElfinDescription{"osc12_type", "OSC 1/2 Type", 24}},
-    {OSC12_MIX, {"osc12_mix", "OSC 1/2 Mix", 25}},
-    {OSC2_COARSE, {"osc2_coarse", "OSC2 Coarse", 20}},
-    {OSC2_FINE, {"osc2_fine", "OSC2 Fine", 21}},
+    {OSC12_TYPE, ElfinDescription{"osc12_type", "OSC 1/2 Type", "Type", 24}},
+    {OSC12_MIX, {"osc12_mix", "OSC 1/2 Mix", "1/2 Mix", 25}},
+    {OSC2_COARSE, {"osc2_coarse", "OSC2 Coarse", "2 Coarse", 20}},
+    {OSC2_FINE, {"osc2_fine", "OSC2 Fine", "2 Fine", 21}},
 
-    {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", 16}},
-    {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", 17}}};
+    {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cut", 16}},
+    {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Res", 17}}};
 
-#define ELFLOG(...) std::cout << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__ << std::endl;
+#if LOGSCREEN
+extern std::vector<std::string> logMessages;
+extern std::mutex logLock;
+#define ELFLOG(...)                                                                                \
+    {                                                                                              \
+        std::ostringstream oss;                                                                    \
+        oss << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__;                                  \
+        std::cout << oss.str() << std::endl;                                                       \
+        std::lock_guard<std::mutex> loggg(logLock);                                                \
+        logMessages.push_back(oss.str());                                                          \
+    }
+#else
+#define ELFLOG(...) std::cout << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__ << std::endl
+#endif
+
 };     // namespace baconpaul::elfin_controller
 #endif // CONFIGURATION_H

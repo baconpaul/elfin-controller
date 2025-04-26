@@ -14,15 +14,23 @@
 #include "ElfinMainPanel.h"
 #include "sst/jucegui/components/NamedPanel.h"
 #include "sst/jucegui/data/Continuous.h"
+#include "sst/jucegui/components/Label.h"
+#include "sst/jucegui/components/Knob.h"
 
 namespace baconpaul::elfin_controller
 {
+
+#if LOGSCREEN
+std::vector<std::string> logMessages;
+std::mutex logLock;
+#endif
+
 struct ParamSource : sst::jucegui::data::Continuous
 {
     ElfinControllerAudioProcessor::float_param_t *par{nullptr};
     ParamSource(ElfinControllerAudioProcessor::float_param_t *v) { par = v; }
 
-    std::string getLabel() const override { return "L"; }
+    std::string getLabel() const override { return par->desc.label; }
     float getValue() const override { return par->get(); }
     void setValueFromGUI(const float &f) override
     {
@@ -39,6 +47,7 @@ struct ParamSource : sst::jucegui::data::Continuous
 struct BasePanel : sst::jucegui::components::NamedPanel
 {
     BasePanel(const std::string &s) : NamedPanel(s) {}
+
     template <typename W = sst::jucegui::components::Knob, typename D = ParamSource>
     void bindAndAdd(std::unique_ptr<D> &d, std::unique_ptr<W> &w,
                     ElfinControllerAudioProcessor::float_param_t *p)
@@ -47,6 +56,24 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         w = std::make_unique<W>();
         w->setSource(d.get());
         addAndMakeVisible(*w);
+
+        w->onBeginEdit = [p]()
+        {
+            ELFLOG("Begin Edit " << p->desc.name);
+            p->beginChangeGesture();
+        };
+        w->onEndEdit = [p]()
+        {
+            ELFLOG("End Edit " << p->desc.name);
+            p->endChangeGesture();
+        };
+    }
+
+    template <typename A, typename B> void placeBelow(const A &a, const B &b)
+    {
+        auto ab = a->getBounds();
+        auto bb = ab.translated(0, ab.getHeight()).withHeight(14);
+        b->setBounds(bb);
     }
 };
 
@@ -62,7 +89,8 @@ struct FilterPanel : BasePanel
     void resized() override
     {
         auto c = getContentArea();
-        filterCutoff->setBounds(c.withWidth(c.getHeight() - 3));
+        auto kHeight = c.getHeight();
+        filterCutoff->setBounds(c.withWidth(kHeight - 18).withHeight(kHeight));
         resonance->setBounds(filterCutoff->getBounds().translated(c.getHeight(), 0));
     }
 };
@@ -81,15 +109,24 @@ struct OscPanel : BasePanel
     void resized() override
     {
         auto c = getContentArea();
-        osc12T->setBounds(c.withWidth(c.getHeight() - 3));
-        osc12M->setBounds(osc12T->getBounds().translated(c.getHeight(), 0));
-        osc2C->setBounds(osc12M->getBounds().translated(c.getHeight(), 0));
-        osc2F->setBounds(osc2C->getBounds().translated(c.getHeight(), 0));
+        auto kHeight = c.getHeight();
+
+        osc12T->setBounds(c.withWidth(kHeight - 18));
+        osc12M->setBounds(osc12T->getBounds().translated(kHeight, 0));
+        osc2C->setBounds(osc12M->getBounds().translated(kHeight, 0));
+        osc2F->setBounds(osc2C->getBounds().translated(kHeight, 0));
     }
 };
 
+struct IdleTimer : juce::Timer
+{
+    ElfinMainPanel *parent{nullptr};
+    IdleTimer(ElfinMainPanel *p) : parent(p){};
+    void timerCallback() override { parent->onIdle(); }
+};
+
 ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
-    : sst::jucegui::components::WindowPanel()
+    : sst::jucegui::components::WindowPanel(), processor(p)
 {
     sst::jucegui::style::StyleSheet::initializeStyleSheets([]() {});
 
@@ -101,9 +138,15 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
 
     oscPanel = std::make_unique<OscPanel>(p);
     addAndMakeVisible(*oscPanel);
+    timer = std::make_unique<IdleTimer>(this);
+    timer->startTimer(50);
 }
 
-ElfinMainPanel::~ElfinMainPanel() {}
+ElfinMainPanel::~ElfinMainPanel()
+{
+    if (timer)
+        timer->stopTimer();
+}
 
 void ElfinMainPanel::resized()
 {
@@ -112,4 +155,50 @@ void ElfinMainPanel::resized()
     filterPanel->setBounds(fpB);
     oscPanel->setBounds(fpB.translated(0, fpB.getHeight() + 10).withWidth(400));
 }
+
+void ElfinMainPanel::paint(juce::Graphics &g)
+{
+    WindowPanel::paint(g);
+#if LOGSCREEN
+    std::lock_guard<std::mutex> loggg(logLock);
+    auto lms = logMessages.size() - 1;
+    auto fs = 11;
+    auto nr = 15;
+
+    g.setFont(fs);
+    g.setColour(juce::Colours::yellow);
+    auto h = getHeight() - nr * fs;
+    for (int i = 0; i < nr; ++i)
+    {
+        auto ll = lms - i;
+        if (ll < 0)
+            break;
+        g.drawText(logMessages[ll], 5, h, getWidth() - 10, 10, juce::Justification::centredLeft);
+        h += fs + 2;
+    }
+#endif
+}
+
+void ElfinMainPanel::onIdle()
+{
+    bool doRepaint = false;
+    if (processor.refreshUI)
+    {
+        doRepaint = true;
+        processor.refreshUI = false;
+    }
+
+#if LOGSCREEN
+    {
+        std::lock_guard<std::mutex> loggg(logLock);
+        if (logMessages.size() != lastLogSize)
+        {
+            doRepaint = true;
+        }
+    }
+#endif
+    if (doRepaint)
+        repaint();
+}
+
 } // namespace baconpaul::elfin_controller

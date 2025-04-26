@@ -26,13 +26,21 @@ struct OscPanel;
 
 struct ElfinMainPanel : sst::jucegui::components::WindowPanel
 {
+    ElfinControllerAudioProcessor &processor;
     ElfinMainPanel(ElfinControllerAudioProcessor &);
     ~ElfinMainPanel();
 
     std::unique_ptr<FilterPanel> filterPanel;
     std::unique_ptr<OscPanel> oscPanel;
 
+    void paint(juce::Graphics &g) override;
+
+    void onIdle();
+
     void resized() override;
+
+    std::unique_ptr<juce::Timer> timer;
+    int lastLogSize{0};
 };
 } // namespace baconpaul::elfin_controller
 #endif // ELFINMAINPANEL_H

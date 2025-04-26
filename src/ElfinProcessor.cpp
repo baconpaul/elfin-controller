@@ -31,6 +31,7 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
     for (const auto &[id, cc] : elfinConfig)
     {
         params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.5f);
+        params[id]->addListener(this);
 
         addParameter(params[id]);
     }
@@ -64,7 +65,6 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
     if (!pc)
     {
         pc = true;
-        ELFLOG("Program Change");
         midiMessages.addEvent(juce::MidiMessage::programChange(1, 5), 0);
     }
 
@@ -74,13 +74,12 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
         if (p->invalid == true)
         {
             p->invalid = false;
-            ELFLOG(p->control << " '" << p->desc.name << "' (" << p->desc.midiCC << ") changed to "
-                              << p->getCC() << " (" << p->get() << ")");
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
                                   0);
         }
     }
 
+#if 0
     if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
     {
         ELFLOG("Note On " << sampleCount);
@@ -92,6 +91,7 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
         midiMessages.addEvent(juce::MidiMessage::noteOff(1, 60, 0.8f), 0);
     }
 
+#endif
     sampleCount += buffer.getNumSamples();
     if (sampleCount > 96000)
     {
