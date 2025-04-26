@@ -14,7 +14,9 @@
 #ifndef ELFIN_CONTROLLER_CONFIGURATION_H
 #define ELFIN_CONTROLLER_CONFIGURATION_H
 
+#include <map>
 #include <array>
+
 namespace baconpaul::elfin_controller
 {
 struct ElfinDescription
@@ -39,34 +41,27 @@ enum ElfinControl
     OSC2_FINE,
     FILT_CUTOFF,
     FILT_RESONANCE,
+    FILT_EG,
+
+    SUB_TYPE,
+    SUB_LEVEL,
+
+    EG_ON_OFF,
+    EG_A,
+    EG_D,
+    EG_S,
+    EG_R,
+
     numElfinControlTypes
 };
 
 static constexpr int nElfinParams = (int)ElfinControl::numElfinControlTypes;
 
-static inline std::map<ElfinControl, ElfinDescription> elfinConfig{
-    {OSC12_TYPE, ElfinDescription{"osc12_type", "OSC 1/2 Type", "Type", 24}},
-    {OSC12_MIX, {"osc12_mix", "OSC 1/2 Mix", "1/2 Mix", 25}},
-    {OSC2_COARSE, {"osc2_coarse", "OSC2 Coarse", "2 Coarse", 20}},
-    {OSC2_FINE, {"osc2_fine", "OSC2 Fine", "2 Fine", 21}},
+extern std::map<ElfinControl, ElfinDescription> elfinConfig;
 
-    {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cut", 16}},
-    {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Res", 17}}};
+void setupConfiguration();
 
-#if LOGSCREEN
-extern std::vector<std::string> logMessages;
-extern std::mutex logLock;
-#define ELFLOG(...)                                                                                \
-    {                                                                                              \
-        std::ostringstream oss;                                                                    \
-        oss << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__;                                  \
-        std::cout << oss.str() << std::endl;                                                       \
-        std::lock_guard<std::mutex> loggg(logLock);                                                \
-        logMessages.push_back(oss.str());                                                          \
-    }
-#else
 #define ELFLOG(...) std::cout << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__ << std::endl
-#endif
 
 };     // namespace baconpaul::elfin_controller
 #endif // CONFIGURATION_H

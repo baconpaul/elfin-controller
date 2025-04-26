@@ -28,6 +28,8 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
                          .withInput("Input", juce::AudioChannelSet::stereo(), true)
                          .withOutput("Output", juce::AudioChannelSet::stereo(), true))
 {
+    setupConfiguration();
+
     for (const auto &[id, cc] : elfinConfig)
     {
         params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.5f);
@@ -79,7 +81,7 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
         }
     }
 
-#if 0
+#if 1
     if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
     {
         ELFLOG("Note On " << sampleCount);
