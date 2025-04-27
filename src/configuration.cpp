@@ -36,8 +36,20 @@ void setupConfiguration()
         {EG_D, {"eg_d", "EG Decay", "D", 19}},
         {EG_S, {"eg_s", "EG Sustain", "S", 27}},
         {EG_R, {"eg_r", "EG Release", "R", 28}},
-
     };
+
+    // Set up the discrete ranges
+    auto &ot = elfinConfig[OSC12_TYPE];
+    ot.discreteRanges.emplace_back(0, 15, "Saw/Saw");
+    ot.discreteRanges.emplace_back(16, 39, "Saw/Sqr");
+    ot.discreteRanges.emplace_back(40, 63, "Saw/Noise");
+    ot.discreteRanges.emplace_back(64, 87, "Sqr/Noise");
+    ot.discreteRanges.emplace_back(88, 111, "Sqr/Saw");
+    ot.discreteRanges.emplace_back(112, 127, "Sqr/Sqr");
+
+    auto &aeg = elfinConfig[EG_ON_OFF];
+    aeg.discreteRanges.emplace_back(0, 63, "Off");
+    aeg.discreteRanges.emplace_back(64, 127, "On");
 
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
     {

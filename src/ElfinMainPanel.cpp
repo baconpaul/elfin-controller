@@ -16,6 +16,7 @@
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/components/Label.h"
 #include "sst/jucegui/components/Knob.h"
+#include "sst/jucegui/components/MultiSwitch.h"
 
 namespace baconpaul::elfin_controller
 {
@@ -28,7 +29,7 @@ struct ParamSource : sst::jucegui::data::Continuous
     float getValue() const override { return par->get(); }
     void setValueFromGUI(const float &f) override
     {
-        if (par->getCC() != par->getCCFor(f))
+        if (par->getCC() != par->getCCForFloat(f))
         {
             par->setValueNotifyingHost(f);
         }
@@ -38,11 +39,49 @@ struct ParamSource : sst::jucegui::data::Continuous
     float getMin() const override { return 0; }
     float getMax() const override { return 1; }
 };
+
+struct DiscreteParamSource : sst::jucegui::data::Discrete
+{
+    ElfinControllerAudioProcessor::float_param_t *par{nullptr};
+    DiscreteParamSource(ElfinControllerAudioProcessor::float_param_t *v) { par = v; }
+
+    std::string getLabel() const override { return par->desc.label; }
+    int cacheCC{-1}, cacheLookup{-1};
+    int getValue() const override
+    {
+        auto v = par->getCC();
+        int idx{0};
+        for (auto &d : par->desc.discreteRanges)
+        {
+            if (v >= d.from && v <= d.to)
+                return idx;
+            idx++;
+        }
+        return 0;
+    }
+    void setValueFromGUI(const int &i) override
+    {
+        auto rng = par->desc.discreteRanges[i];
+        auto mid = (rng.from + rng.to) / 2;
+        auto f = par->getFloatForCC(mid);
+        par->setValueNotifyingHost(f);
+    }
+    void setValueFromModel(const int &f) override {}
+    int getDefaultValue() const override { return 2; }
+    int getMin() const override { return 0; }
+    int getMax() const override { return par->desc.discreteRanges.size() - 1; }
+    std::string getValueAsStringFor(int i) const override
+    {
+        return par->desc.discreteRanges[i].label;
+    }
+};
+
 struct BasePanel : sst::jucegui::components::NamedPanel
 {
     BasePanel(const std::string &s) : NamedPanel(s) {}
 
     std::map<ElfinControl, std::unique_ptr<ParamSource>> sources;
+    std::map<ElfinControl, std::unique_ptr<DiscreteParamSource>> discreteSources;
     std::map<ElfinControl, std::unique_ptr<juce::Component>> widgets;
 
     template <typename W = sst::jucegui::components::Knob>
@@ -53,6 +92,18 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         bindAndAdd(ps, wid, p.params[c]);
         auto res = wid.get();
         sources[c] = std::move(ps);
+        widgets[c] = std::move(wid);
+        return res;
+    }
+
+    template <typename W = sst::jucegui::components::MultiSwitch>
+    W *attachDiscrete(ElfinControllerAudioProcessor &p, ElfinControl c)
+    {
+        std::unique_ptr<W> wid;
+        std::unique_ptr<DiscreteParamSource> ps;
+        bindAndAdd(ps, wid, p.params[c]);
+        auto res = wid.get();
+        discreteSources[c] = std::move(ps);
         widgets[c] = std::move(wid);
         return res;
     }
@@ -96,17 +147,32 @@ struct BasePanel : sst::jucegui::components::NamedPanel
             bx = bx.translated(kHeight, 0);
         }
     }
+
+    void createFrom(ElfinControllerAudioProcessor &p, const std::vector<ElfinControl> &contents)
+    {
+        for (auto &c : contents)
+        {
+            auto par = p.params[c];
+            if (!par)
+                continue;
+            if (par->desc.hasDiscreteRanges())
+            {
+                ELFLOG("Discrete control at " << par->desc.name);
+                attachDiscrete(p, c);
+            }
+            else
+            {
+                attach(p, c);
+            }
+        }
+    }
 };
 
 struct FilterPanel : BasePanel
 {
     std::vector<ElfinControl> contents{ElfinControl::FILT_CUTOFF, ElfinControl::FILT_RESONANCE,
                                        ElfinControl::FILT_EG};
-    FilterPanel(ElfinControllerAudioProcessor &p) : BasePanel("Filter")
-    {
-        for (auto &c : contents)
-            attach(p, c);
-    }
+    FilterPanel(ElfinControllerAudioProcessor &p) : BasePanel("Filter") { createFrom(p, contents); }
     void resized() override { resizeInOrder(contents); }
 };
 
@@ -117,8 +183,7 @@ struct OscPanel : BasePanel
                                        ElfinControl::SUB_TYPE,    ElfinControl::SUB_LEVEL};
     OscPanel(ElfinControllerAudioProcessor &p) : BasePanel("Oscillator")
     {
-        for (auto &c : contents)
-            attach(p, c);
+        createFrom(p, contents);
     }
     void resized() override { resizeInOrder(contents); }
 };
@@ -127,11 +192,7 @@ struct EGPanel : BasePanel
 {
     std::vector<ElfinControl> contents{ElfinControl::EG_ON_OFF, ElfinControl::EG_A,
                                        ElfinControl::EG_D, ElfinControl::EG_S, ElfinControl::EG_R};
-    EGPanel(ElfinControllerAudioProcessor &p) : BasePanel("EG")
-    {
-        for (auto &c : contents)
-            attach(p, c);
-    }
+    EGPanel(ElfinControllerAudioProcessor &p) : BasePanel("EG") { createFrom(p, contents); }
     void resized() override { resizeInOrder(contents); }
 };
 

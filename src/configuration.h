@@ -31,6 +31,16 @@ struct ElfinDescription
         : name(n), label(l), midiCC(m), streaming_name(s)
     {
     }
+
+    struct LabeledMidiRange
+    {
+        LabeledMidiRange() {}
+        LabeledMidiRange(int f, int t, const std::string &l) : from(f), to(t), label(l) {}
+        int16_t from{-1}, to{-1};
+        std::string label{"err"};
+    };
+    std::vector<LabeledMidiRange> discreteRanges;
+    bool hasDiscreteRanges() const { return !discreteRanges.empty(); }
 };
 
 // This enum value doesn't stream. Its just for code readabiligy

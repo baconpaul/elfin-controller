@@ -64,13 +64,6 @@ void ElfinControllerAudioProcessor::releaseResources() { isPlaying = false; }
 void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                                  juce::MidiBuffer &midiMessages)
 {
-    static bool pc{false};
-    if (!pc)
-    {
-        pc = true;
-        midiMessages.addEvent(juce::MidiMessage::programChange(1, 5), 0);
-    }
-
     for (auto &p : params)
     {
         // FIXME atomic compare
@@ -79,10 +72,11 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
             p->invalid = false;
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
                                   0);
+            // ELFLOG(p->desc.name << " to " << p->getCC());
         }
     }
 
-#if 1
+#if 0
     if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
     {
         ELFLOG("Note On " << sampleCount);
