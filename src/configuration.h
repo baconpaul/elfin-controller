@@ -16,6 +16,7 @@
 
 #include <map>
 #include <array>
+#include <vector>
 #include <iostream>
 
 namespace baconpaul::elfin_controller
