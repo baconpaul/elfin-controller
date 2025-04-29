@@ -24,6 +24,7 @@ namespace baconpaul::elfin_controller
 struct FilterPanel;
 struct OscPanel;
 struct EGPanel;
+struct LFOPanel;
 
 struct ElfinMainPanel : sst::jucegui::components::WindowPanel
 {
@@ -34,6 +35,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     std::unique_ptr<FilterPanel> filterPanel;
     std::unique_ptr<OscPanel> oscPanel;
     std::unique_ptr<EGPanel> egPanel;
+    std::unique_ptr<LFOPanel> lfoPanel;
 
     void paint(juce::Graphics &g) override;
 

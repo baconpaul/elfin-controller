@@ -36,6 +36,15 @@ void setupConfiguration()
         {EG_D, {"eg_d", "EG Decay", "D", 19}},
         {EG_S, {"eg_s", "EG Sustain", "S", 27}},
         {EG_R, {"eg_r", "EG Release", "R", 28}},
+
+        {LFO_TYPE, {"lfo_type", "LFO Type", "Type", 14}},
+        {LFO_RATE, {"lfo_type", "LFO Rate", "Rate", 80}},
+        {LFO_DEPTH, {"lfo_depth", "LFO Depth", "Depth", 81}},
+        {LFO_TO_PITCH, {"lfo_to_pitch", "LFO To Pitch", "> Pitch", 82}},
+        {LFO_TO_CUTOFF, {"lfo_tu_cutoff", "LFO To Cutoff", "> Cutoff", 83}},
+        {LFO_TO_PITCH_TARGET, {"lfo_to_pitch_tgt", "LFO To Pitch Target", "Target", 9}},
+        {LFO_FADE_TIME, {"lfo_fade_time", "LFO Fade Time", "Fade T", 15}},
+        {EG_TO_LFORATE, {"eg_to_rate", "EG to LFO Rate", "EG > Rate", 3}},
     };
 
     // Set up the discrete ranges
@@ -50,6 +59,22 @@ void setupConfiguration()
     auto &aeg = elfinConfig[EG_ON_OFF];
     aeg.discreteRanges.emplace_back(0, 63, "Off");
     aeg.discreteRanges.emplace_back(64, 127, "On");
+
+    auto &sst = elfinConfig[SUB_TYPE];
+    sst.discreteRanges.emplace_back(0, 31, "SIN");
+    sst.discreteRanges.emplace_back(32, 95, "NOISE");
+    sst.discreteRanges.emplace_back(96, 127, "SQUARE");
+
+    auto &lfot = elfinConfig[LFO_TYPE];
+    lfot.discreteRanges.emplace_back(0, 15, "Tri, No KT");
+    lfot.discreteRanges.emplace_back(16, 47, "Tri");
+    lfot.discreteRanges.emplace_back(48, 79, "SAW Dn");
+    lfot.discreteRanges.emplace_back(80, 111, "Rand");
+    lfot.discreteRanges.emplace_back(112, 127, "Sqr");
+
+    auto &lfop = elfinConfig[LFO_TO_PITCH_TARGET];
+    lfop.discreteRanges.emplace_back(0, 63, "1 and 2");
+    lfop.discreteRanges.emplace_back(64, 127, "2");
 
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
     {

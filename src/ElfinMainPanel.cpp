@@ -196,6 +196,16 @@ struct EGPanel : BasePanel
     void resized() override { resizeInOrder(contents); }
 };
 
+
+struct LFOPanel : BasePanel
+{
+    std::vector<ElfinControl> contents{ElfinControl::LFO_TYPE, ElfinControl::LFO_RATE, ElfinControl::LFO_DEPTH, ElfinControl::LFO_FADE_TIME,
+        ElfinControl::LFO_TO_CUTOFF, ElfinControl::LFO_TO_PITCH, ElfinControl::LFO_TO_PITCH_TARGET,
+    ElfinControl::EG_TO_LFORATE};
+    LFOPanel(ElfinControllerAudioProcessor &p) : BasePanel("LFO") { createFrom(p, contents); }
+    void resized() override { resizeInOrder(contents); }
+};
+
 struct IdleTimer : juce::Timer
 {
     ElfinMainPanel *parent{nullptr};
@@ -220,6 +230,9 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
     egPanel = std::make_unique<EGPanel>(p);
     addAndMakeVisible(*egPanel);
 
+    lfoPanel = std::make_unique<LFOPanel>(p);
+    addAndMakeVisible(*lfoPanel);
+
     timer = std::make_unique<IdleTimer>(this);
     timer->startTimer(50);
 }
@@ -237,6 +250,7 @@ void ElfinMainPanel::resized()
     filterPanel->setBounds(fpB);
     oscPanel->setBounds(fpB.translated(0, fpB.getHeight() + 10).withWidth(450));
     egPanel->setBounds(oscPanel->getBounds().translated(0, fpB.getHeight() + 10).withWidth(450));
+    lfoPanel->setBounds(egPanel->getBounds().translated(0, fpB.getHeight() + 10).withWidth(600));
 }
 
 void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }
