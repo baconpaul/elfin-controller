@@ -18,10 +18,6 @@ add_subdirectory(libs/sst/sst-jucegui)
 list(APPEND ELFCO_FORMATS VST3)
 list(APPEND ELFCO_FORMATS AU)
 list(APPEND ELFCO_FORMATS Standalone)
-if (UNIX AND NOT APPLE)
-  # I know it works on other platforms but demand is low there
-  list(APPEND ELFCO_FORMATS LV2)
-endif()
 
 set(ELFCO_PRODUCT_NAME "Elfin Controller")
 
@@ -41,10 +37,6 @@ juce_add_plugin(${PROJECT_NAME}
   COPY_PLUGIN_AFTER_BUILD TRUE
 
   AU_SANDBOX_SAFE TRUE
-
-
-  LV2_URI https://hideaway/lv2/elfincontroller
-  LV2_SHARED_LIBRARY_NAME ElfinController
 
   FORMATS ${ELFCO_FORMATS}
   )
