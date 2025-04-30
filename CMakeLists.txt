@@ -10,7 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(elfin-controller VERSION 0.1.0)
 
-option(ELFIN_COPY_AFTER_BUILD "Copy after Build", FALSE)
+option(ELFIN_COPY_AFTER_BUILD "Copy after Build" FALSE)
 
 add_subdirectory(libs/JUCE)
 add_subdirectory(libs/clap-juce-extensions)
