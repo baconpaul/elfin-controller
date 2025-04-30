@@ -10,6 +10,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(elfin-controller VERSION 0.1.0)
 
+option(ELFIN_COPY_AFTER_BUILD "Copy after Build", FALSE)
+
 add_subdirectory(libs/JUCE)
 add_subdirectory(libs/clap-juce-extensions)
 add_subdirectory(libs/sst/sst-jucegui)
@@ -34,7 +36,9 @@ juce_add_plugin(${PROJECT_NAME}
   NEEDS_MIDI_OUTPUT TRUE
   IS_MIDI_EFFECT TRUE
 
-  COPY_PLUGIN_AFTER_BUILD TRUE
+  COPY_PLUGIN_AFTER_BUILD ${ELFIN_COPY_AFTER_BUILD}
+
+  VST3_AUTO_MANIFEST FALSE
 
   AU_SANDBOX_SAFE TRUE
 
