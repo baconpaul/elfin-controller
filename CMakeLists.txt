@@ -10,6 +10,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(elfin-controller VERSION 0.1.0)
 
+option(ELFIN_COPY_AFTER_BUILD "Copy after Build" FALSE)
+
 add_subdirectory(libs/JUCE)
 add_subdirectory(libs/clap-juce-extensions)
 add_subdirectory(libs/sst/sst-jucegui)
@@ -18,10 +20,6 @@ add_subdirectory(libs/sst/sst-jucegui)
 list(APPEND ELFCO_FORMATS VST3)
 list(APPEND ELFCO_FORMATS AU)
 list(APPEND ELFCO_FORMATS Standalone)
-if (UNIX AND NOT APPLE)
-  # I know it works on other platforms but demand is low there
-  list(APPEND ELFCO_FORMATS LV2)
-endif()
 
 set(ELFCO_PRODUCT_NAME "Elfin Controller")
 
@@ -38,13 +36,11 @@ juce_add_plugin(${PROJECT_NAME}
   NEEDS_MIDI_OUTPUT TRUE
   IS_MIDI_EFFECT TRUE
 
-  COPY_PLUGIN_AFTER_BUILD TRUE
+  COPY_PLUGIN_AFTER_BUILD ${ELFIN_COPY_AFTER_BUILD}
+
+  VST3_AUTO_MANIFEST FALSE
 
   AU_SANDBOX_SAFE TRUE
-
-
-  LV2_URI https://hideaway/lv2/elfincontroller
-  LV2_SHARED_LIBRARY_NAME ElfinController
 
   FORMATS ${ELFCO_FORMATS}
   )
