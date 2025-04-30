@@ -42,6 +42,15 @@ struct ElfinDescription
     };
     std::vector<LabeledMidiRange> discreteRanges;
     bool hasDiscreteRanges() const { return !discreteRanges.empty(); }
+
+    void setAsTwoStage(const std::string &lo ,
+        const std::string &hi )
+    {
+        discreteRanges.clear();
+        discreteRanges.emplace_back(0, 63, lo);
+        discreteRanges.emplace_back(64, 127, hi);
+
+    }
 };
 
 // This enum value doesn't stream. Its just for code readabiligy
@@ -55,8 +64,8 @@ enum ElfinControl
     SUB_TYPE,
     SUB_LEVEL,
 
-    EG_PITCH,
-    EG_PTGT,
+    EG_TO_PITCH,
+    EG_TO_PITCH_TARGET,
 
     FILT_CUTOFF,
     FILT_RESONANCE,
@@ -85,7 +94,7 @@ enum ElfinControl
 
     PORTA,
     LEGATO,
-    K_ASN, // WHAT IS THIS?
+    KEY_ASSIGN_MODE,
     EXP_BY_VEL,
 
     OSC_LEVEL,
