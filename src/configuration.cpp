@@ -51,18 +51,17 @@ void setupConfiguration()
 
         {PBEND_RANGE, {"pbed_range", "Pitch Bend Range", "PB", 85}},
         {PITCH_TO_CUTOFF, {"pitch_to_cut", "Pitch to Cutoff", "Ptch>CO", 86}},
-            {EXP_TO_CUTOFF, {"exp_to_cut", "Exp to Cutoff", "Exp>CO", 106}},
+        {EXP_TO_CUTOFF, {"exp_to_cut", "Exp to Cutoff", "Exp>CO", 106}},
         {EXP_TO_AMP_LEVEL, {"exp_to_amp", "Exp to Amp", "Exp>Amp", 107}},
-        {EXP_BY_VEL, {"exp_by_vel", "Exp by Vel", "Exp/Vel", 89 }},
+        {EXP_BY_VEL, {"exp_by_vel", "Exp by Vel", "Exp/Vel", 89}},
 
         {PORTA, {"portamento", "Portamento", "Porta", 22}},
         {LEGATO, {"legato", "Legato", "Legato", 30}},
-            {KEY_ASSIGN_MODE, {"key_assign", "Key Assign", "KAsn", 87}},
+        {KEY_ASSIGN_MODE, {"key_assign", "Key Assign", "KAsn", 87}},
         {OSC_LEVEL, {"osc_level", "OSC Level", "OscLev", 108}},
         {UNI_DETUNE, {"uni_detune", "Unison Detune", "UniDt", 109}},
         {POLY_UNI_MODE, {"poly_uni", "Poly Unison Mode", "PUMode", 110}},
-        {DAMP_AND_ATTACK, {"damp_and_attack", "Damp and Attack", "Dmp/Atk", 111}}
-    };
+        {DAMP_AND_ATTACK, {"damp_and_attack", "Damp and Attack", "Dmp/Atk", 111}}};
 
     // Set up the discrete ranges
     auto &ot = elfinConfig[OSC12_TYPE];
@@ -96,10 +95,10 @@ void setupConfiguration()
     elfinConfig[POLY_UNI_MODE].setAsTwoStage("Poly", "Unison");
 
     auto &kasn = elfinConfig[KEY_ASSIGN_MODE];
-    kasn.discreteRanges.emplace_back(0, 47, "Low ST" );
-    kasn.discreteRanges.emplace_back(48, 79, "Duo ST" );
-    kasn.discreteRanges.emplace_back(80, 111, "Highest ST" );
-    kasn.discreteRanges.emplace_back(112, 127, "Last MT" );
+    kasn.discreteRanges.emplace_back(0, 47, "Low ST");
+    kasn.discreteRanges.emplace_back(48, 79, "Duo ST");
+    kasn.discreteRanges.emplace_back(80, 111, "Highest ST");
+    kasn.discreteRanges.emplace_back(112, 127, "Last MT");
 
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
     {

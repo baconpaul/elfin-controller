@@ -143,6 +143,9 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     juce::AudioParameterBool *bypassParam{nullptr};
     juce::AudioProcessorParameter *getBypassParameter() const override { return bypassParam; }
 
+    std::string toXML() const;
+    bool fromXML(const std::string &s);
+
     std::unique_ptr<juce::PropertiesFile> properties;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElfinControllerAudioProcessor)

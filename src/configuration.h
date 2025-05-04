@@ -43,13 +43,11 @@ struct ElfinDescription
     std::vector<LabeledMidiRange> discreteRanges;
     bool hasDiscreteRanges() const { return !discreteRanges.empty(); }
 
-    void setAsTwoStage(const std::string &lo ,
-        const std::string &hi )
+    void setAsTwoStage(const std::string &lo, const std::string &hi)
     {
         discreteRanges.clear();
         discreteRanges.emplace_back(0, 63, lo);
         discreteRanges.emplace_back(64, 127, hi);
-
     }
 };
 

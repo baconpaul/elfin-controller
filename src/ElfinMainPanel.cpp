@@ -78,11 +78,8 @@ struct DiscreteParamSource : sst::jucegui::data::Discrete
 
 struct BasePanel : sst::jucegui::components::NamedPanel
 {
-    BasePanel(const std::string &s) : NamedPanel(s) {}
-
-    std::map<ElfinControl, std::unique_ptr<ParamSource>> sources;
-    std::map<ElfinControl, std::unique_ptr<DiscreteParamSource>> discreteSources;
-    std::map<ElfinControl, std::unique_ptr<juce::Component>> widgets;
+    ElfinMainPanel &main;
+    BasePanel(ElfinMainPanel &m, const std::string &s) : main(m), NamedPanel(s) {}
 
     template <typename W = sst::jucegui::components::Knob>
     W *attach(ElfinControllerAudioProcessor &p, ElfinControl c)
@@ -91,8 +88,8 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         std::unique_ptr<ParamSource> ps;
         bindAndAdd(ps, wid, p.params[c]);
         auto res = wid.get();
-        sources[c] = std::move(ps);
-        widgets[c] = std::move(wid);
+        main.sources[c] = std::move(ps);
+        main.widgets[c] = std::move(wid);
         return res;
     }
 
@@ -103,8 +100,8 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         std::unique_ptr<DiscreteParamSource> ps;
         bindAndAdd(ps, wid, p.params[c]);
         auto res = wid.get();
-        discreteSources[c] = std::move(ps);
-        widgets[c] = std::move(wid);
+        main.discreteSources[c] = std::move(ps);
+        main.widgets[c] = std::move(wid);
         return res;
     }
 
@@ -143,7 +140,7 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         auto bx = c.withWidth(kHeight - 18).withHeight(kHeight).translated(2, 0);
         for (auto &c : order)
         {
-            widgets[c]->setBounds(bx);
+            main.widgets[c]->setBounds(bx);
             bx = bx.translated(kHeight, 0);
         }
     }
@@ -171,7 +168,10 @@ struct FilterPanel : BasePanel
 {
     std::vector<ElfinControl> contents{ElfinControl::FILT_CUTOFF, ElfinControl::FILT_RESONANCE,
                                        ElfinControl::FILT_EG};
-    FilterPanel(ElfinControllerAudioProcessor &p) : BasePanel("Filter") { createFrom(p, contents); }
+    FilterPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Filter")
+    {
+        createFrom(p, contents);
+    }
     void resized() override { resizeInOrder(contents); }
 };
 
@@ -180,8 +180,8 @@ struct OscPanel : BasePanel
     std::vector<ElfinControl> contents{ElfinControl::OSC12_TYPE,  ElfinControl::OSC12_MIX,
                                        ElfinControl::OSC2_COARSE, ElfinControl::OSC2_FINE,
                                        ElfinControl::SUB_TYPE,    ElfinControl::SUB_LEVEL,
-    ElfinControl::EG_TO_PITCH, ElfinControl::EG_TO_PITCH_TARGET};
-    OscPanel(ElfinControllerAudioProcessor &p) : BasePanel("Oscillator")
+                                       ElfinControl::EG_TO_PITCH, ElfinControl::EG_TO_PITCH_TARGET};
+    OscPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Oscillator")
     {
         createFrom(p, contents);
     }
@@ -192,44 +192,52 @@ struct EGPanel : BasePanel
 {
     std::vector<ElfinControl> contents{ElfinControl::EG_ON_OFF, ElfinControl::EG_A,
                                        ElfinControl::EG_D, ElfinControl::EG_S, ElfinControl::EG_R};
-    EGPanel(ElfinControllerAudioProcessor &p) : BasePanel("EG") { createFrom(p, contents); }
+    EGPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "EG")
+    {
+        createFrom(p, contents);
+    }
     void resized() override { resizeInOrder(contents); }
 };
-
 
 struct LFOPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::LFO_TYPE, ElfinControl::LFO_RATE, ElfinControl::LFO_DEPTH, ElfinControl::LFO_FADE_TIME,
-        ElfinControl::LFO_TO_CUTOFF, ElfinControl::LFO_TO_PITCH, ElfinControl::LFO_TO_PITCH_TARGET,
-    ElfinControl::EG_TO_LFORATE};
-    LFOPanel(ElfinControllerAudioProcessor &p) : BasePanel("LFO") { createFrom(p, contents); }
+    std::vector<ElfinControl> contents{ElfinControl::LFO_TYPE,
+                                       ElfinControl::LFO_RATE,
+                                       ElfinControl::LFO_DEPTH,
+                                       ElfinControl::LFO_FADE_TIME,
+                                       ElfinControl::LFO_TO_CUTOFF,
+                                       ElfinControl::LFO_TO_PITCH,
+                                       ElfinControl::LFO_TO_PITCH_TARGET,
+                                       ElfinControl::EG_TO_LFORATE};
+    LFOPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "LFO")
+    {
+        createFrom(p, contents);
+    }
     void resized() override { resizeInOrder(contents); }
 };
-
 
 struct ModPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::PBEND_RANGE,
-    ElfinControl::PITCH_TO_CUTOFF,
-    ElfinControl::EXP_TO_CUTOFF,
-    ElfinControl::EXP_TO_AMP_LEVEL,
-    ElfinControl::EXP_BY_VEL};
-    ModPanel(ElfinControllerAudioProcessor &p) : BasePanel("MOD") { createFrom(p, contents); }
+    std::vector<ElfinControl> contents{ElfinControl::PBEND_RANGE, ElfinControl::PITCH_TO_CUTOFF,
+                                       ElfinControl::EXP_TO_CUTOFF, ElfinControl::EXP_TO_AMP_LEVEL,
+                                       ElfinControl::EXP_BY_VEL};
+    ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "MOD")
+    {
+        createFrom(p, contents);
+    }
     void resized() override { resizeInOrder(contents); }
 };
 
-
-
 struct SettingsPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::PORTA,
-        ElfinControl::LEGATO,
-        ElfinControl::KEY_ASSIGN_MODE,
-    ElfinControl::OSC_LEVEL,
-    ElfinControl::UNI_DETUNE,
-    ElfinControl::POLY_UNI_MODE,
-    ElfinControl::DAMP_AND_ATTACK};
-    SettingsPanel(ElfinControllerAudioProcessor &p) : BasePanel("SETTINGS") { createFrom(p, contents); }
+    std::vector<ElfinControl> contents{ElfinControl::PORTA,           ElfinControl::LEGATO,
+                                       ElfinControl::KEY_ASSIGN_MODE, ElfinControl::OSC_LEVEL,
+                                       ElfinControl::UNI_DETUNE,      ElfinControl::POLY_UNI_MODE,
+                                       ElfinControl::DAMP_AND_ATTACK};
+    SettingsPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "SETTINGS")
+    {
+        createFrom(p, contents);
+    }
     void resized() override { resizeInOrder(contents); }
 };
 
@@ -248,26 +256,35 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
     setStyle(sst::jucegui::style::StyleSheet::getBuiltInStyleSheet(
         sst::jucegui::style::StyleSheet::DARK));
 
-    filterPanel = std::make_unique<FilterPanel>(p);
+    filterPanel = std::make_unique<FilterPanel>(*this, p);
     addAndMakeVisible(*filterPanel);
 
-    oscPanel = std::make_unique<OscPanel>(p);
+    oscPanel = std::make_unique<OscPanel>(*this, p);
     addAndMakeVisible(*oscPanel);
 
-    egPanel = std::make_unique<EGPanel>(p);
+    egPanel = std::make_unique<EGPanel>(*this, p);
     addAndMakeVisible(*egPanel);
 
-    lfoPanel = std::make_unique<LFOPanel>(p);
+    lfoPanel = std::make_unique<LFOPanel>(*this, p);
     addAndMakeVisible(*lfoPanel);
 
-    modPanel = std::make_unique<ModPanel>(p);
+    modPanel = std::make_unique<ModPanel>(*this, p);
     addAndMakeVisible(*modPanel);
 
-    settingsPanel = std::make_unique<SettingsPanel>(p);
+    settingsPanel = std::make_unique<SettingsPanel>(*this, p);
     addAndMakeVisible(*settingsPanel);
 
     timer = std::make_unique<IdleTimer>(this);
     timer->startTimer(50);
+
+    // Debug check
+    for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
+    {
+        if (widgets.find((ElfinControl)i) == widgets.end())
+        {
+            ELFLOG("Undisplayed control : (ElfinControl)" << i);
+        }
+    }
 }
 
 ElfinMainPanel::~ElfinMainPanel()
@@ -283,12 +300,15 @@ void ElfinMainPanel::resized()
     auto fpB = b.withWidth(210).withHeight(100);
     filterPanel->setBounds(fpB);
     oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
-    egPanel->setBounds(filterPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(360));
-    modPanel->setBounds(egPanel->getBounds().translated(egPanel->getWidth() + margin, 0).withWidth(360));
+    egPanel->setBounds(
+        filterPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(360));
+    modPanel->setBounds(
+        egPanel->getBounds().translated(egPanel->getWidth() + margin, 0).withWidth(360));
 
-    lfoPanel->setBounds(egPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
-    settingsPanel->setBounds(lfoPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
-
+    lfoPanel->setBounds(
+        egPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
+    settingsPanel->setBounds(
+        lfoPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
 }
 
 void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }

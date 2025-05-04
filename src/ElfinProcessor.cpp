@@ -114,9 +114,83 @@ void ElfinControllerAudioProcessor::parameterValueChanged(int parameterIndex, fl
 }
 
 //==============================================================================
-void ElfinControllerAudioProcessor::getStateInformation(juce::MemoryBlock &destData) {}
+void ElfinControllerAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
+{
+    auto s = toXML();
+    destData.append(s.c_str(), s.length() + 1);
+}
 
-void ElfinControllerAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {}
+void ElfinControllerAudioProcessor::setStateInformation(const void *data, int sizeInBytes)
+{
+    auto q = std::string((const char *)data, (size_t)sizeInBytes);
+    if (!q.empty())
+    {
+        fromXML(q);
+    }
+}
+
+std::string ElfinControllerAudioProcessor::toXML() const
+{
+    auto doc = juce::XmlElement("elfin");
+    doc.setAttribute("version", 1);
+    for (auto &p : params)
+    {
+        auto parX = new juce::XmlElement("param");
+        parX->setAttribute("id", p->desc.streaming_name);
+        parX->setAttribute("cc", p->desc.midiCC);
+        parX->setAttribute("val", p->get());
+        parX->setAttribute("ccval", p->getCC());
+
+        doc.addChildElement(parX);
+    }
+
+    return doc.toString().toStdString();
+}
+bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
+{
+    auto doc = juce::XmlDocument(s);
+    if (auto mainElement = doc.getDocumentElement())
+    {
+        ELFLOG("Got mainElement " << mainElement->getTagName());
+        if (mainElement->getTagName() != "elfin")
+        {
+            ELFLOG("Not elfin");
+            return false;
+        }
+        if (mainElement->getIntAttribute("version", -1) != 1)
+        {
+            ELFLOG("Not version1");
+            return false;
+        }
+
+        auto *child = mainElement->getFirstChildElement();
+
+        std::map<std::string, double> valueMap;
+        while (child)
+        {
+            if (child->getTagName() == "param")
+            {
+                auto sn = child->getStringAttribute("id");
+                auto sv = child->getDoubleAttribute("val");
+                valueMap[sn.toStdString()] = sv;
+            }
+            child = child->getNextElement();
+        }
+        ELFLOG("FIXME : Setvalue notifying host here is odd. Set then notify all instead");
+        for (auto p : params)
+        {
+            auto pos = valueMap.find(p->desc.streaming_name);
+            if (pos != valueMap.end())
+                p->setValueNotifyingHost(pos->second);
+        }
+    }
+    else
+    {
+        ELFLOG(doc.getLastParseError());
+    }
+    return true;
+}
+
 } // namespace baconpaul::elfin_controller
 
 //==============================================================================

@@ -14,6 +14,8 @@
 #ifndef ELFIN_CONTROLLER_ELFINMAINPANEL_H
 #define ELFIN_CONTROLLER_ELFINMAINPANEL_H
 
+#include <map>
+
 #include "sst/jucegui/components/WindowPanel.h"
 #include "sst/jucegui/components/Knob.h"
 #include "sst/jucegui/data/Continuous.h"
@@ -28,11 +30,18 @@ struct LFOPanel;
 struct ModPanel;
 struct SettingsPanel;
 
+struct ParamSource;
+struct DiscreteParamSource;
+
 struct ElfinMainPanel : sst::jucegui::components::WindowPanel
 {
     ElfinControllerAudioProcessor &processor;
     ElfinMainPanel(ElfinControllerAudioProcessor &);
     ~ElfinMainPanel();
+
+    std::map<ElfinControl, std::unique_ptr<ParamSource>> sources;
+    std::map<ElfinControl, std::unique_ptr<DiscreteParamSource>> discreteSources;
+    std::map<ElfinControl, std::unique_ptr<juce::Component>> widgets;
 
     std::unique_ptr<FilterPanel> filterPanel;
     std::unique_ptr<OscPanel> oscPanel;
