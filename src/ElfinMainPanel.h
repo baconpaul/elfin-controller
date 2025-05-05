@@ -18,7 +18,9 @@
 
 #include "sst/jucegui/components/WindowPanel.h"
 #include "sst/jucegui/components/Knob.h"
+#include "sst/jucegui/components/MenuButton.h"
 #include "sst/jucegui/data/Continuous.h"
+#include "sst/jucegui/style/JUCELookAndFeelAdapter.h"
 #include "ElfinProcessor.h"
 
 namespace baconpaul::elfin_controller
@@ -39,6 +41,9 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     ElfinMainPanel(ElfinControllerAudioProcessor &);
     ~ElfinMainPanel();
 
+    std::unique_ptr<sst::jucegui::components::MenuButton> mainMenu;
+    void showMainMenu();
+
     std::map<ElfinControl, std::unique_ptr<ParamSource>> sources;
     std::map<ElfinControl, std::unique_ptr<DiscreteParamSource>> discreteSources;
     std::map<ElfinControl, std::unique_ptr<juce::Component>> widgets;
@@ -49,6 +54,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     std::unique_ptr<LFOPanel> lfoPanel;
     std::unique_ptr<ModPanel> modPanel;
     std::unique_ptr<SettingsPanel> settingsPanel;
+
+    std::unique_ptr<sst::jucegui::style::LookAndFeelManager> lnf;
 
     void paint(juce::Graphics &g) override;
 

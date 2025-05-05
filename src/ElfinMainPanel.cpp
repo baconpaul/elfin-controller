@@ -256,6 +256,20 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
     setStyle(sst::jucegui::style::StyleSheet::getBuiltInStyleSheet(
         sst::jucegui::style::StyleSheet::DARK));
 
+    lnf = std::make_unique<sst::jucegui::style::LookAndFeelManager>(this);
+    lnf->setStyle(style());
+
+    mainMenu = std::make_unique<sst::jucegui::components::MenuButton>();
+    mainMenu->setLabel("Main Menu");
+    mainMenu->setOnCallback(
+        [w = juce::Component::SafePointer(this)]()
+        {
+            if (!w)
+                return;
+            w->showMainMenu();
+        });
+    addAndMakeVisible(*mainMenu);
+
     filterPanel = std::make_unique<FilterPanel>(*this, p);
     addAndMakeVisible(*filterPanel);
 
@@ -291,12 +305,33 @@ ElfinMainPanel::~ElfinMainPanel()
 {
     if (timer)
         timer->stopTimer();
+    setLookAndFeel(nullptr);
+}
+
+void ElfinMainPanel::showMainMenu()
+{
+    auto p = juce::PopupMenu();
+    p.addSectionHeader("Elfin Controller");
+    p.addSeparator();
+    p.addItem("Save Patch", []() {});
+    p.addItem("Load Patch", []() {});
+    p.addItem("Resend Patch to MIDI",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  for (auto p : w->processor.params)
+                      p->invalid = true;
+              });
+    p.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this));
 }
 
 void ElfinMainPanel::resized()
 {
     static constexpr int margin{4};
     auto b = getLocalBounds().reduced(5);
+    mainMenu->setBounds(b.withWidth(200).withHeight(30));
+    b = b.withTrimmedTop(35);
     auto fpB = b.withWidth(210).withHeight(100);
     filterPanel->setBounds(fpB);
     oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
