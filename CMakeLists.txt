@@ -103,4 +103,4 @@ clap_juce_extensions_plugin(TARGET ${PROJECT_NAME}
       "note-effect"
      )
 
-# include(../cmake/basic-installer.cmake)
+include(cmake/basic_installer.cmake)

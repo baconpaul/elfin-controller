@@ -56,7 +56,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           cmake -S . -B ./build ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release -DCOPY_AFTER_BUILD=FALSE -DGITHUB_ACTIONS_BUILD=TRUE
-          cmake --build ./build --config Release --target elfin-controller_All --parallel 3
+          cmake --build ./build --config Release --target elfin-controller-staged --parallel 3
 
       - name: Configure pull request version
         if: github.event_name == 'pull_request'
@@ -66,23 +66,16 @@ jobs:
       - name: Build pull request version
         if: github.event_name == 'pull_request'
         run: |
-          cmake --build ./build --config Debug --target elfin-controller_All --parallel 3
+          cmake --build ./build --config Debug --target elfin-controller-staged --parallel 3
 
-      - name: Find all the six sines
+      - name: List the resulting product
         run: |
-          find build -name "Elfin*" -print
+          ls -l build/elfin_controller_products
 
       - name: Make windows zip
         if: github.event_name != 'pull_request' && runner.os == 'Windows'
         run: |
-          mkdir build/inst
-          
-          cp resources/mac_installer/License.txt build/six-sines_assets
-          cp resources/ReadmeZip.txt build/six-sines_assets
-          pushd build/six-sines_assets
-          ls -al
-
-          7z a -r ../inst/six-sines-windows-${{ matrix.installer_name }}`date +"%Y-%m-%d"`-`git rev-parse --short HEAD`.zip *
+          cmake --build ./build --config Release --target elfin-controller-installer --parallel 3
 
       - name: Make Mac
         if: github.event_name != 'pull_request' && runner.os == 'macOS'
@@ -95,16 +88,13 @@ jobs:
           export MAC_SIGNING_TEAM="${{ secrets.MAC_SIGNING_TEAM }}"
           
           
-          mkdir build/inst
-          cd build/six-sines_assets
-          ../../libs/sst/sst-plugininfra/scripts/installer_mac/make_installer.sh "Elfin Controller" . ../resources/mac_installer ../inst ${{ matrix.installer_name }}`date +"%Y-%m-%d"`-`git rev-parse --short HEAD`
-
+          cmake --build ./build --config Release --target elfin-controller-installer --parallel 3
 
       - name: Upload artifact
         if: github.event_name != 'pull_request' && runner.os != 'Linux'  # We get this through docker
         uses: actions/upload-artifact@v4
         with:
-          path: build/inst
+          path: build/installer
           name: dawplugin-${{ matrix.name }}
 
 
@@ -125,30 +115,17 @@ jobs:
           username: ${{ github.actor }}
           token: ${{ secrets.GITHUB_TOKEN }}
           cmakeArgs: -DCMAKE_BUILD_TYPE=Release -GNinja  -DCOPY_AFTER_BUILD=FALSE  -DGITHUB_ACTIONS_BUILD=TRUE
-          target: elfin-controller_All
-
-
-      - name: Make linux tgz
-        run: |
-          find build -name "Elfin*" -print
-
-          mkdir build/inst
-          cp resources/mac_installer/License.txt build/six-sines_assets
-          cp resources/ReadmeZip.txt build/six-sines_assets
-          pushd build/six-sines_assets
-          ls -al
-
-          tar cvzf ../inst/six-sines-linux-`date +"%Y-%m-%d"`-`git rev-parse --short HEAD`.tgz .
+          target: elfin-controller-installer
 
       - name: Show Installer Directory
         run: |
-          ls -l ./build/inst
+          ls -l ./build/installer
 
       - name: Upload artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          path: build/inst
+          path: build/installer
           name: build-docker-linux
 
   publish-plugin-nightly:
