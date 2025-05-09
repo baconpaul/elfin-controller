@@ -103,9 +103,9 @@ void setupConfiguration()
 
     // Ask Dani
     auto &ptc = elfinConfig[PITCH_TO_CUTOFF];
-    ptc.discreteRanges.emplace_back(0, 43, "Off");
-    ptc.discreteRanges.emplace_back(44, 44 + 43, "Half");
-    ptc.discreteRanges.emplace_back(44 + 43, 127, "On");
+    ptc.discreteRanges.emplace_back(0, 32, "Off");
+    ptc.discreteRanges.emplace_back(33, 96, "Half");
+    ptc.discreteRanges.emplace_back(97, 127, "On");
 
     std::set<std::string> mappedStreaming;
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
