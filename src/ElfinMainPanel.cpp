@@ -313,8 +313,18 @@ void ElfinMainPanel::showMainMenu()
     auto p = juce::PopupMenu();
     p.addSectionHeader("Elfin Controller");
     p.addSeparator();
-    p.addItem("Save Patch", []() {});
-    p.addItem("Load Patch", []() {});
+    p.addItem("Save Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (w)
+                      w->savePatch();
+              });
+    p.addItem("Load Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (w)
+                      w->loadPatch();
+              });
     p.addItem("Resend Patch to MIDI",
               [w = juce::Component::SafePointer(this)]()
               {
@@ -359,6 +369,46 @@ void ElfinMainPanel::onIdle()
 
     if (doRepaint)
         repaint();
+}
+
+void ElfinMainPanel::loadPatch()
+{
+    fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(), "*.elfin");
+    fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
+                                 juce::FileBrowserComponent::openMode,
+                             [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
+                             {
+                                 if (!w)
+                                     return;
+                                 auto result = c.getResults();
+                                 if (result.isEmpty() || result.size() > 1)
+                                 {
+                                     return;
+                                 }
+                                 auto jf = result[0];
+                                 auto s = jf.loadFileAsString().toStdString();
+                                 w->processor.fromXML(s);
+                             });
+}
+void ElfinMainPanel::savePatch()
+{
+    fileChooser = std::make_unique<juce::FileChooser>("Save Patch", juce::File(), "*.elfin");
+    fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
+                                 juce::FileBrowserComponent::saveMode |
+                                 juce::FileBrowserComponent::warnAboutOverwriting,
+                             [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
+                             {
+                                 if (!w)
+                                     return;
+                                 auto result = c.getResults();
+                                 if (result.isEmpty() || result.size() > 1)
+                                 {
+                                     return;
+                                 }
+                                 auto jf = result[0];
+                                 jf.create();
+                                 jf.appendText(w->processor.toXML());
+                             });
 }
 
 } // namespace baconpaul::elfin_controller

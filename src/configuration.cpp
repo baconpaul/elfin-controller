@@ -12,6 +12,7 @@
  */
 
 #include "configuration.h"
+#include <set>
 
 namespace baconpaul::elfin_controller
 {
@@ -41,7 +42,7 @@ void setupConfiguration()
         {EG_R, {"eg_r", "EG Release", "R", 28}},
 
         {LFO_TYPE, {"lfo_type", "LFO Type", "Type", 14}},
-        {LFO_RATE, {"lfo_type", "LFO Rate", "Rate", 80}},
+        {LFO_RATE, {"lfo_rate", "LFO Rate", "Rate", 80}},
         {LFO_DEPTH, {"lfo_depth", "LFO Depth", "Depth", 81}},
         {LFO_TO_PITCH, {"lfo_to_pitch", "LFO To Pitch", "> Pitch", 82}},
         {LFO_TO_CUTOFF, {"lfo_tu_cutoff", "LFO To Cutoff", "> Cutoff", 83}},
@@ -100,12 +101,20 @@ void setupConfiguration()
     kasn.discreteRanges.emplace_back(80, 111, "Highest ST");
     kasn.discreteRanges.emplace_back(112, 127, "Last MT");
 
+    std::set<std::string> mappedStreaming;
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
     {
         if (elfinConfig.find((ElfinControl)i) == elfinConfig.end())
         {
             ELFLOG("Unmapped control : (ElfinControl)" << i);
         }
+        auto &ec = elfinConfig[(ElfinControl)i];
+        if (mappedStreaming.find(ec.streaming_name) != mappedStreaming.end())
+        {
+            ELFLOG("Double key " << ec.streaming_name);
+            std::terminate();
+        }
+        mappedStreaming.insert(ec.streaming_name);
     }
 }
 } // namespace baconpaul::elfin_controller

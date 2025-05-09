@@ -65,6 +65,9 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
 
     std::unique_ptr<juce::Timer> timer;
     int lastLogSize{0};
+
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    void savePatch(), loadPatch();
 };
 } // namespace baconpaul::elfin_controller
 #endif // ELFINMAINPANEL_H
