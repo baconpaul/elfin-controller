@@ -26,10 +26,12 @@ struct ElfinDescription
     std::string streaming_name{};
     std::string name{}, label{};
     int32_t midiCC{-1};
+    bool isBipolar{false};
 
     ElfinDescription() = default;
-    ElfinDescription(const std::string &s, const std::string &n, const std::string &l, int32_t m)
-        : name(n), label(l), midiCC(m), streaming_name(s)
+    ElfinDescription(const std::string &s, const std::string &n, const std::string &l, int32_t m,
+                     bool isBip = false)
+        : name(n), label(l), midiCC(m), streaming_name(s), isBipolar(isBip)
     {
     }
 

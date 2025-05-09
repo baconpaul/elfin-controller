@@ -22,17 +22,17 @@ void setupConfiguration()
     elfinConfig = std::map<ElfinControl, ElfinDescription>{
         {OSC12_TYPE, ElfinDescription{"osc12_type", "OSC 1/2 Type", "Type", 24}},
         {OSC12_MIX, {"osc12_mix", "OSC 1/2 Mix", "1/2 Mix", 25}},
-        {OSC2_COARSE, {"osc2_coarse", "OSC2 Coarse", "2 Coarse", 20}},
-        {OSC2_FINE, {"osc2_fine", "OSC2 Fine", "2 Fine", 21}},
+        {OSC2_COARSE, {"osc2_coarse", "OSC2 Coarse", "2 Coarse", 20, true}},
+        {OSC2_FINE, {"osc2_fine", "OSC2 Fine", "2 Fine", 21, true}},
 
         {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cut", 16}},
         {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Res", 17}},
-        {FILT_EG, {"filt_eg", "Filter EG to Cutoff", "EG>CO", 18}},
+        {FILT_EG, {"filt_eg", "Filter EG to Cutoff", "EG>CO", 18, true}},
 
         {SUB_TYPE, {"sub_type", "Sub Type", "SubType", 29}},
         {SUB_LEVEL, {"sub_level", "Sub Level", "SubLev", 26}},
 
-        {EG_TO_PITCH, {"eg_to_pitch", "EG to Pitch", "EG>Pitch", 104}},
+        {EG_TO_PITCH, {"eg_to_pitch", "EG to Pitch", "EG>Pitch", 104, true}},
         {EG_TO_PITCH_TARGET, {"eg_to_pitch_target", "EG Pitch Target", "EGPTgt", 105}},
 
         {EG_ON_OFF, {"eg_onoff", "AEG Active", "OnOff", 31}},
@@ -44,13 +44,13 @@ void setupConfiguration()
         {LFO_TYPE, {"lfo_type", "LFO Type", "Type", 14}},
         {LFO_RATE, {"lfo_rate", "LFO Rate", "Rate", 80}},
         {LFO_DEPTH, {"lfo_depth", "LFO Depth", "Depth", 81}},
-        {LFO_TO_PITCH, {"lfo_to_pitch", "LFO To Pitch", "> Pitch", 82}},
-        {LFO_TO_CUTOFF, {"lfo_tu_cutoff", "LFO To Cutoff", "> Cutoff", 83}},
+        {LFO_TO_PITCH, {"lfo_to_pitch", "LFO To Pitch", "> Pitch", 82, true}},
+        {LFO_TO_CUTOFF, {"lfo_tu_cutoff", "LFO To Cutoff", "> Cutoff", 83, true}},
         {LFO_TO_PITCH_TARGET, {"lfo_to_pitch_tgt", "LFO To Pitch Target", "Target", 9}},
         {LFO_FADE_TIME, {"lfo_fade_time", "LFO Fade Time", "Fade T", 15}},
-        {EG_TO_LFORATE, {"eg_to_rate", "EG to LFO Rate", "EG > Rate", 3}},
+        {EG_TO_LFORATE, {"eg_to_rate", "EG to LFO Rate", "EG > Rate", 3, true}},
 
-        {PBEND_RANGE, {"pbed_range", "Pitch Bend Range", "PB", 85}},
+        {PBEND_RANGE, {"pbend_range", "Pitch Bend Range", "PB", 85}},
         {PITCH_TO_CUTOFF, {"pitch_to_cut", "Pitch to Cutoff", "Ptch>CO", 86}},
         {EXP_TO_CUTOFF, {"exp_to_cut", "Exp to Cutoff", "Exp>CO", 106}},
         {EXP_TO_AMP_LEVEL, {"exp_to_amp", "Exp to Amp", "Exp>Amp", 107}},
@@ -100,6 +100,12 @@ void setupConfiguration()
     kasn.discreteRanges.emplace_back(48, 79, "Duo ST");
     kasn.discreteRanges.emplace_back(80, 111, "Highest ST");
     kasn.discreteRanges.emplace_back(112, 127, "Last MT");
+
+    // Ask Dani
+    auto &ptc = elfinConfig[PITCH_TO_CUTOFF];
+    ptc.discreteRanges.emplace_back(0, 43, "Off");
+    ptc.discreteRanges.emplace_back(44, 44 + 43, "Half");
+    ptc.discreteRanges.emplace_back(44 + 43, 127, "On");
 
     std::set<std::string> mappedStreaming;
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)

@@ -31,6 +31,7 @@ struct ParamSource : sst::jucegui::data::Continuous
 
     std::string getLabel() const override { return par->desc.label; }
     float getValue() const override { return par->get(); }
+    bool isBipolar() const override { return par->desc.isBipolar; }
     void setValueFromGUI(const float &f) override
     {
         if (par->getCC() != par->getCCForFloat(f))
