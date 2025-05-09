@@ -22,6 +22,7 @@
 #include "sst/jucegui/components/Knob.h"
 #include "sst/jucegui/components/Label.h"
 #include "sst/jucegui/components/MenuButton.h"
+#include "sst/jucegui/components/ToolTip.h"
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/style/JUCELookAndFeelAdapter.h"
 #include "ElfinProcessor.h"
@@ -57,6 +58,11 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     std::unique_ptr<LFOPanel> lfoPanel;
     std::unique_ptr<ModPanel> modPanel;
     std::unique_ptr<SettingsPanel> settingsPanel;
+
+    std::unique_ptr<sst::jucegui::components::ToolTip> toolTip;
+    void showToolTip(ElfinControllerAudioProcessor::float_param_t *, juce::Component *);
+    void updateToolTip(ElfinControllerAudioProcessor::float_param_t *);
+    void hideToolTip();
 
     std::unique_ptr<sst::jucegui::components::Label> versionLabel;
 

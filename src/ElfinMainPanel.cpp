@@ -27,7 +27,12 @@ namespace baconpaul::elfin_controller
 struct ParamSource : sst::jucegui::data::Continuous
 {
     ElfinControllerAudioProcessor::float_param_t *par{nullptr};
-    ParamSource(ElfinControllerAudioProcessor::float_param_t *v) { par = v; }
+    ElfinMainPanel &panel;
+
+    ParamSource(ElfinControllerAudioProcessor::float_param_t *v, ElfinMainPanel &m) : panel(m)
+    {
+        par = v;
+    }
 
     std::string getLabel() const override { return par->desc.label; }
     float getValue() const override { return par->get(); }
@@ -37,6 +42,7 @@ struct ParamSource : sst::jucegui::data::Continuous
         if (par->getCC() != par->getCCForFloat(f))
         {
             par->setValueNotifyingHost(f);
+            panel.updateToolTip(par);
         }
     }
     void setValueFromModel(const float &f) override {}
@@ -48,7 +54,10 @@ struct ParamSource : sst::jucegui::data::Continuous
 struct DiscreteParamSource : sst::jucegui::data::Discrete
 {
     ElfinControllerAudioProcessor::float_param_t *par{nullptr};
-    DiscreteParamSource(ElfinControllerAudioProcessor::float_param_t *v) { par = v; }
+    DiscreteParamSource(ElfinControllerAudioProcessor::float_param_t *v, ElfinMainPanel &)
+    {
+        par = v;
+    }
 
     std::string getLabel() const override { return par->desc.label; }
     int cacheCC{-1}, cacheLookup{-1};
@@ -114,20 +123,42 @@ struct BasePanel : sst::jucegui::components::NamedPanel
     void bindAndAdd(std::unique_ptr<D> &d, std::unique_ptr<W> &w,
                     ElfinControllerAudioProcessor::float_param_t *p)
     {
-        d = std::make_unique<D>(p);
+        d = std::make_unique<D>(p, main);
         w = std::make_unique<W>();
         w->setSource(d.get());
         addAndMakeVisible(*w);
 
-        w->onBeginEdit = [p]()
+        w->onBeginEdit = [wv = w.get(), q = juce::Component::SafePointer(this), p]()
+        {
+            p->beginChangeGesture();
+            if (q)
+            {
+                q->main.showToolTip(p, wv);
+            }
+        };
+        w->onEndEdit = [w = juce::Component::SafePointer(this), p]()
+        {
+            p->endChangeGesture();
+            if (w)
+            {
+                w->main.hideToolTip();
+            }
+        };
+        w->onIdleHover = [wv = w.get(), q = juce::Component::SafePointer(this), p]()
         {
             ELFLOG("Begin Edit " << p->desc.name);
-            p->beginChangeGesture();
+            if (q)
+            {
+                q->main.showToolTip(p, wv);
+            }
         };
-        w->onEndEdit = [p]()
+        w->onIdleHoverEnd = [w = juce::Component::SafePointer(this), p]()
         {
             ELFLOG("End Edit " << p->desc.name);
-            p->endChangeGesture();
+            if (w)
+            {
+                w->main.hideToolTip();
+            }
         };
     }
 
@@ -459,6 +490,50 @@ void ElfinMainPanel::setupUserPath()
     catch (fs::filesystem_error &e)
     {
     }
+}
+
+void ElfinMainPanel::showToolTip(ElfinControllerAudioProcessor::float_param_t *p,
+                                 juce::Component *c)
+{
+    if (!toolTip)
+    {
+        toolTip = std::make_unique<sst::jucegui::components::ToolTip>();
+        addChildComponent(*toolTip);
+    }
+    toolTip->setVisible(true);
+    auto bl = c->getBounds().getBottomLeft();
+    while (c != this && c->getParentComponent())
+    {
+        c = c->getParentComponent();
+        bl += c->getBounds().getTopLeft();
+    }
+    toolTip->setTopLeftPosition(bl);
+    updateToolTip(p);
+}
+
+void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t *p)
+{
+    assert(toolTip);
+
+    using row_t = sst::jucegui::components::ToolTip::Row;
+    std::vector<row_t> rows;
+
+    row_t one;
+    one.leftAlignText = "CC=" + std::to_string(p->desc.midiCC);
+    one.leftIsMonospace = true;
+    row_t two;
+    two.leftAlignText = "VAL=" + std::to_string(p->getCC());
+    two.leftIsMonospace = true;
+    rows.push_back(two);
+    rows.push_back(one);
+    toolTip->setTooltipTitleAndData(p->desc.name, rows);
+    toolTip->resetSizeFromData();
+}
+
+void ElfinMainPanel::hideToolTip()
+{
+    assert(toolTip);
+    toolTip->setVisible(false);
 }
 
 } // namespace baconpaul::elfin_controller
