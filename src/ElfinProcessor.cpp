@@ -33,7 +33,8 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
     std::fill(params.begin(), params.end(), nullptr);
     for (const auto &[id, cc] : elfinConfig)
     {
-        params[id] = new float_param_t(id, cc.streaming_name, cc.name, 0.5f);
+        auto def = float_param_t::getFloatForCC(cc.midiCCDefault);
+        params[id] = new float_param_t(id, cc.streaming_name, cc.name, def);
         params[id]->addListener(this);
 
         addParameter(params[id]);

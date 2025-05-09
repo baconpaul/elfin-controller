@@ -146,7 +146,6 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         };
         w->onIdleHover = [wv = w.get(), q = juce::Component::SafePointer(this), p]()
         {
-            ELFLOG("Begin Edit " << p->desc.name);
             if (q)
             {
                 q->main.showToolTip(p, wv);
@@ -154,7 +153,6 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         };
         w->onIdleHoverEnd = [w = juce::Component::SafePointer(this), p]()
         {
-            ELFLOG("End Edit " << p->desc.name);
             if (w)
             {
                 w->main.hideToolTip();

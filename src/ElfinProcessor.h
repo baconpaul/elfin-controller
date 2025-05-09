@@ -126,7 +126,7 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
             desc = elfinConfig.at(control);
         }
 
-        float getFloatForCC(int cc) { return std::clamp(cc / 127.0, 0., 1.); }
+        static float getFloatForCC(int cc) { return std::clamp(cc / 127.0, 0., 1.); }
         int getCCForFloat(float f)
         {
             return std::clamp((int)std::round(convertTo0to1(f) * 127), 0, 127);
