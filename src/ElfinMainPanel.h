@@ -16,8 +16,11 @@
 
 #include <map>
 
+#include "filesystem/import.h"
+
 #include "sst/jucegui/components/WindowPanel.h"
 #include "sst/jucegui/components/Knob.h"
+#include "sst/jucegui/components/Label.h"
 #include "sst/jucegui/components/MenuButton.h"
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/style/JUCELookAndFeelAdapter.h"
@@ -55,6 +58,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     std::unique_ptr<ModPanel> modPanel;
     std::unique_ptr<SettingsPanel> settingsPanel;
 
+    std::unique_ptr<sst::jucegui::components::Label> versionLabel;
+
     std::unique_ptr<sst::jucegui::style::LookAndFeelManager> lnf;
 
     void paint(juce::Graphics &g) override;
@@ -67,7 +72,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     int lastLogSize{0};
 
     std::unique_ptr<juce::FileChooser> fileChooser;
-    void savePatch(), loadPatch();
+    void savePatch(), loadPatch(), setupUserPath();
+    fs::path userPath;
 };
 } // namespace baconpaul::elfin_controller
 #endif // ELFINMAINPANEL_H

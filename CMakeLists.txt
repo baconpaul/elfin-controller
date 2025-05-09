@@ -12,9 +12,16 @@ project(elfin-controller VERSION 0.1.0)
 
 option(ELFIN_COPY_AFTER_BUILD "Copy after Build" FALSE)
 
+include (cmake/compile-options.cmake)
+
+include(libs/sst/sst-plugininfra/cmake/git-version-functions.cmake)
+version_from_versionfile_or_git()
+message(STATUS "DISPLAY_VERSION=${GIT_IMPLIED_DISPLAY_VERSION}; COMMIT_HASH=${GIT_COMMIT_HASH}; BRANCH=${GIT_BRANCH}")
+
 add_subdirectory(libs/JUCE)
 add_subdirectory(libs/clap-juce-extensions)
 add_subdirectory(libs/sst/sst-jucegui)
+add_subdirectory(libs/sst/sst-plugininfra)
 
 
 list(APPEND ELFCO_FORMATS VST3)
@@ -55,7 +62,6 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
         JUCE_WEB_BROWSER=0
         JUCE_USE_CAMERA=disabled
 
-        JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_REPORT_APP_USAGE=0
 
         JUCE_MODAL_LOOPS_PERMITTED=0
@@ -85,6 +91,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     juce::juce_audio_utils
     juce::juce_audio_processors
     sst-jucegui
+    sst-plugininfra
+    sst-plugininfra::version_information
+    sst-plugininfra::filesystem
 )
 
 clap_juce_extensions_plugin(TARGET ${PROJECT_NAME}

@@ -12,6 +12,10 @@
  */
 
 #include "ElfinMainPanel.h"
+
+#include "sst/plugininfra/paths.h"
+#include "sst/plugininfra/version_information.h"
+
 #include "sst/jucegui/components/NamedPanel.h"
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/components/Label.h"
@@ -253,6 +257,8 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
 {
     sst::jucegui::style::StyleSheet::initializeStyleSheets([]() {});
 
+    userPath = sst::plugininfra::paths::bestDocumentsFolderPathFor("ElfinController");
+
     setStyle(sst::jucegui::style::StyleSheet::getBuiltInStyleSheet(
         sst::jucegui::style::StyleSheet::DARK));
 
@@ -287,6 +293,25 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
 
     settingsPanel = std::make_unique<SettingsPanel>(*this, p);
     addAndMakeVisible(*settingsPanel);
+
+    versionLabel = std::make_unique<sst::jucegui::components::Label>();
+
+    std::string os = "";
+#if JUCE_MAC
+    os = "macOS";
+#endif
+#if JUCE_WINDOWS
+    os = "Windows";
+#endif
+#if JUCE_LINUX
+    os = "Linux";
+#endif
+
+    auto bi = os + " / " + sst::plugininfra::VersionInformation::git_commit_hash;
+
+    versionLabel->setText(std::string() + sst::plugininfra::VersionInformation::git_implied_display_version  + " / " + bi);
+    versionLabel->setJustification(juce::Justification::topLeft);
+    addAndMakeVisible(*versionLabel);
 
     timer = std::make_unique<IdleTimer>(this);
     timer->startTimer(50);
@@ -354,6 +379,9 @@ void ElfinMainPanel::resized()
         egPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
     settingsPanel->setBounds(
         lfoPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
+
+    auto lb = getLocalBounds().withTop(getBottom()-20).reduced(2);
+    versionLabel->setBounds(lb);
 }
 
 void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }
@@ -373,7 +401,8 @@ void ElfinMainPanel::onIdle()
 
 void ElfinMainPanel::loadPatch()
 {
-    fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(), "*.elfin");
+    setupUserPath();
+    fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(userPath.u8string()), "*.elfin");
     fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
                                  juce::FileBrowserComponent::openMode,
                              [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
@@ -392,7 +421,8 @@ void ElfinMainPanel::loadPatch()
 }
 void ElfinMainPanel::savePatch()
 {
-    fileChooser = std::make_unique<juce::FileChooser>("Save Patch", juce::File(), "*.elfin");
+    setupUserPath();
+    fileChooser = std::make_unique<juce::FileChooser>("Save Patch", juce::File(userPath.u8string()), "*.elfin");
     fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
                                  juce::FileBrowserComponent::saveMode |
                                  juce::FileBrowserComponent::warnAboutOverwriting,
@@ -410,5 +440,21 @@ void ElfinMainPanel::savePatch()
                                  jf.appendText(w->processor.toXML());
                              });
 }
+
+void ElfinMainPanel::setupUserPath()
+{
+    try
+    {
+        if (!fs::is_directory(userPath))
+        {
+            fs::create_directories(userPath);
+        }
+    }
+    catch (fs::filesystem_error &e)
+    {
+
+    }
+}
+
 
 } // namespace baconpaul::elfin_controller
