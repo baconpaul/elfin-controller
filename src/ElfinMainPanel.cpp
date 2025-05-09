@@ -309,7 +309,9 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
 
     auto bi = os + " / " + sst::plugininfra::VersionInformation::git_commit_hash;
 
-    versionLabel->setText(std::string() + sst::plugininfra::VersionInformation::git_implied_display_version  + " / " + bi);
+    versionLabel->setText(std::string() +
+                          sst::plugininfra::VersionInformation::git_implied_display_version +
+                          " / " + bi);
     versionLabel->setJustification(juce::Justification::topLeft);
     addAndMakeVisible(*versionLabel);
 
@@ -380,7 +382,7 @@ void ElfinMainPanel::resized()
     settingsPanel->setBounds(
         lfoPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
 
-    auto lb = getLocalBounds().withTop(getBottom()-20).reduced(2);
+    auto lb = getLocalBounds().withTop(getBottom() - 20).reduced(2);
     versionLabel->setBounds(lb);
 }
 
@@ -402,7 +404,8 @@ void ElfinMainPanel::onIdle()
 void ElfinMainPanel::loadPatch()
 {
     setupUserPath();
-    fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(userPath.u8string()), "*.elfin");
+    fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(userPath.u8string()),
+                                                      "*.elfin");
     fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
                                  juce::FileBrowserComponent::openMode,
                              [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
@@ -419,10 +422,12 @@ void ElfinMainPanel::loadPatch()
                                  w->processor.fromXML(s);
                              });
 }
+
 void ElfinMainPanel::savePatch()
 {
     setupUserPath();
-    fileChooser = std::make_unique<juce::FileChooser>("Save Patch", juce::File(userPath.u8string()), "*.elfin");
+    fileChooser = std::make_unique<juce::FileChooser>("Save Patch", juce::File(userPath.u8string()),
+                                                      "*.elfin");
     fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
                                  juce::FileBrowserComponent::saveMode |
                                  juce::FileBrowserComponent::warnAboutOverwriting,
@@ -452,9 +457,7 @@ void ElfinMainPanel::setupUserPath()
     }
     catch (fs::filesystem_error &e)
     {
-
     }
 }
-
 
 } // namespace baconpaul::elfin_controller

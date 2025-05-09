@@ -138,7 +138,6 @@ std::string ElfinControllerAudioProcessor::toXML() const
         auto parX = new juce::XmlElement("param");
         parX->setAttribute("id", p->desc.streaming_name);
         parX->setAttribute("cc", p->desc.midiCC);
-        parX->setAttribute("val", p->get());
         parX->setAttribute("ccval", p->getCC());
 
         doc.addChildElement(parX);
@@ -165,23 +164,22 @@ bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
 
         auto *child = mainElement->getFirstChildElement();
 
-        std::map<std::string, double> valueMap;
+        std::map<std::string, int> valueMap;
         while (child)
         {
             if (child->getTagName() == "param")
             {
                 auto sn = child->getStringAttribute("id");
-                auto sv = child->getDoubleAttribute("val");
-                valueMap[sn.toStdString()] = sv;
+                auto sc = child->getIntAttribute("ccval");
+                valueMap[sn.toStdString()] = sc;
             }
             child = child->getNextElement();
         }
-        ELFLOG("FIXME : Setvalue notifying host here is odd. Set then notify all instead");
         for (auto p : params)
         {
             auto pos = valueMap.find(p->desc.streaming_name);
             if (pos != valueMap.end())
-                p->setValueNotifyingHost(pos->second);
+                p->setValueNotifyingHost(p->getFloatForCC(pos->second));
         }
     }
     else
