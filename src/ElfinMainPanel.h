@@ -39,7 +39,7 @@ struct SettingsPanel;
 struct ParamSource;
 struct DiscreteParamSource;
 
-struct ElfinMainPanel : sst::jucegui::components::WindowPanel
+struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAndDropTarget
 {
     ElfinControllerAudioProcessor &processor;
     ElfinMainPanel(ElfinControllerAudioProcessor &);
@@ -80,6 +80,9 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel
     std::unique_ptr<juce::FileChooser> fileChooser;
     void savePatch(), loadPatch(), setupUserPath();
     fs::path userPath;
+
+    bool isInterestedInFileDrag(const juce::StringArray &files) override;
+    void filesDropped(const juce::StringArray &files, int x, int y) override;
 };
 } // namespace baconpaul::elfin_controller
 #endif // ELFINMAINPANEL_H

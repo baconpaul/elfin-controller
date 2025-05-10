@@ -534,4 +534,23 @@ void ElfinMainPanel::hideToolTip()
     toolTip->setVisible(false);
 }
 
+bool ElfinMainPanel::isInterestedInFileDrag(const juce::StringArray &files)
+{
+    if (files.size() != 1)
+        return false;
+    if (files[0].endsWith(".elfin"))
+        return true;
+    return false;
+}
+void ElfinMainPanel::filesDropped(const juce::StringArray &files, int x, int y)
+{
+    if (files.size() != 1)
+        return;
+    for (auto &f : files)
+    {
+        auto jf = juce::File(f);
+        auto s = jf.loadFileAsString().toStdString();
+        processor.fromXML(s);
+    }
+}
 } // namespace baconpaul::elfin_controller

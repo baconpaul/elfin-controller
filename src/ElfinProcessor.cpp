@@ -151,7 +151,6 @@ bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
     auto doc = juce::XmlDocument(s);
     if (auto mainElement = doc.getDocumentElement())
     {
-        ELFLOG("Got mainElement " << mainElement->getTagName());
         if (mainElement->getTagName() != "elfin")
         {
             ELFLOG("Not elfin");
