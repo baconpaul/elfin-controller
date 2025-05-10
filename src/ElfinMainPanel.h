@@ -48,6 +48,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     std::unique_ptr<sst::jucegui::components::MenuButton> mainMenu;
     void showMainMenu();
 
+    std::vector<std::unique_ptr<sst::jucegui::data::Continuous>> otherSources;
+    std::vector<std::unique_ptr<sst::jucegui::data::Discrete>> otherDiscrete;
     std::map<ElfinControl, std::unique_ptr<ParamSource>> sources;
     std::map<ElfinControl, std::unique_ptr<DiscreteParamSource>> discreteSources;
     std::map<ElfinControl, std::unique_ptr<juce::Component>> widgets;

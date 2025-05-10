@@ -46,7 +46,7 @@ struct ParamSource : sst::jucegui::data::Continuous
         }
     }
     void setValueFromModel(const float &f) override {}
-    float getDefaultValue() const override { return 0.5; }
+    float getDefaultValue() const override { return par->getFloatForCC(par->desc.midiCCDefault); }
     float getMin() const override { return 0; }
     float getMax() const override { return 1; }
 };
@@ -167,9 +167,10 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         b->setBounds(bb);
     }
 
-    void resizeInOrder(const std::vector<ElfinControl> &order)
+    void resizeInOrder(const std::vector<ElfinControl> &order, int xTrim = 0)
     {
         auto c = getContentArea();
+        c = c.withTrimmedLeft(xTrim);
         auto kHeight = c.getHeight();
         auto bx = c.withWidth(kHeight - 18).withHeight(kHeight).translated(2, 0);
         for (auto &c : order)
@@ -211,15 +212,170 @@ struct FilterPanel : BasePanel
 
 struct OscPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::OSC12_TYPE,  ElfinControl::OSC12_MIX,
-                                       ElfinControl::OSC2_COARSE, ElfinControl::OSC2_FINE,
-                                       ElfinControl::SUB_TYPE,    ElfinControl::SUB_LEVEL,
-                                       ElfinControl::EG_TO_PITCH, ElfinControl::EG_TO_PITCH_TARGET};
+    struct Osc12Selector : sst::jucegui::data::Discrete
+    {
+        ElfinControllerAudioProcessor::float_param_t *par{nullptr};
+        int which{0};
+        Osc12Selector *other{nullptr};
+        Osc12Selector(ElfinControllerAudioProcessor::float_param_t *p, int w) : par(p), which(w) {}
+
+        void resetFromBothParams(int iv1, int iv2)
+        {
+            assert(other);
+            int cc{7};
+            if (iv1 == 0) // saw gives us saw square noise as second
+            {
+                switch (iv2)
+                {
+                case 0: // saw saw is 7
+                    cc = 7;
+                    break;
+                case 1: // saw square is midpoint of 16 and 39
+                    cc = (39 + 16) / 2;
+                    break;
+                case 2: // sqw noise is midpoint of 40 and 63
+                    cc = (40 + 63) / 2;
+                    break;
+                }
+            }
+            else // square
+            {
+                switch (iv2)
+                {
+                case 0: // square saw is 88 to 111
+                    cc = (88 + 111) / 2;
+                    break;
+                case 1: // square square is 112 to 127
+                    cc = (112 + 127) / 2;
+                    break;
+                case 2: // square noise is 64 to 87
+                    cc = (64 + 87) / 2;
+                    break;
+                }
+            }
+            auto val = par->getFloatForCC(cc);
+            par->beginChangeGesture();
+            par->setValueNotifyingHost(val);
+            par->endChangeGesture();
+        }
+
+        int getIValueFromPar() const
+        {
+            auto cc = par->getCC();
+
+            if (which == 0) // osc1 is saw saw saw square square square
+            {
+                if (cc < 64)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+            else // oscillator 2 is saw square noise noise saw square
+            {
+                if (cc < 64)
+                {
+                    if (cc < 16)
+                        return 0;
+                    if (cc < 40)
+                        return 1;
+                    return 2;
+                }
+                else
+                {
+                    if (cc < 88)
+                        return 2;
+                    if (cc < 111)
+                        return 0;
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        std::string getLabel() const override { return "Osc " + std::to_string(which + 1); }
+        int getValue() const override { return getIValueFromPar(); }
+        int getDefaultValue() const override { return 0; }
+        void setValueFromGUI(const int &v) override
+        {
+            resetFromBothParams(which == 0 ? v : other->getIValueFromPar(),
+                                which == 0 ? other->getIValueFromPar() : v);
+        }
+        void setValueFromModel(const int &f) override {}
+        std::string getValueAsStringFor(int i) const override
+        {
+            if (which == 0)
+            {
+                if (i == 0)
+                    return "Saw";
+                else
+                    return "Sqr";
+            }
+            else
+            {
+                switch (i)
+                {
+                case 0:
+                    return "Saw";
+                case 1:
+                    return "Sqr";
+                case 2:
+                    return "Noise";
+                }
+            }
+            return "Err";
+        }
+        int getMin() const override { return 0; }
+        int getMax() const override
+        {
+            if (which == 0)
+                return 1;
+            else
+                return 2;
+        }
+    };
+
+    std::unique_ptr<sst::jucegui::components::MultiSwitch> o1t, o2t;
+
+    std::vector<ElfinControl> contents{ElfinControl::OSC12_MIX,         ElfinControl::OSC2_COARSE,
+                                       ElfinControl::OSC2_FINE,         ElfinControl::SUB_TYPE,
+                                       ElfinControl::SUB_LEVEL,         ElfinControl::EG_TO_PITCH,
+                                       ElfinControl::EG_TO_PITCH_TARGET};
     OscPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Oscillator")
     {
+        auto typepar = p.params[OSC12_TYPE];
+        assert(typepar);
+        auto p1 = std::make_unique<Osc12Selector>(typepar, 0);
+        auto p2 = std::make_unique<Osc12Selector>(typepar, 1);
+        p1->other = p2.get();
+        p2->other = p1.get();
+
+        o1t = std::make_unique<sst::jucegui::components::MultiSwitch>();
+        o1t->setSource(p1.get());
+        addAndMakeVisible(*o1t);
+
+        o2t = std::make_unique<sst::jucegui::components::MultiSwitch>();
+        o2t->setSource(p2.get());
+        addAndMakeVisible(*o2t);
+
+        m.otherDiscrete.push_back(std::move(p1));
+        m.otherDiscrete.push_back(std::move(p2));
+
         createFrom(p, contents);
     }
-    void resized() override { resizeInOrder(contents); }
+    void resized() override
+    {
+        auto c = getContentArea();
+        auto kHeight = c.getHeight();
+        auto bx = c.withWidth(kHeight - 24).withHeight(kHeight).translated(2, 0);
+        o1t->setBounds(bx);
+        bx = bx.translated(kHeight - 24, 0);
+        o2t->setBounds(bx);
+
+        resizeInOrder(contents, 2 * kHeight - 48 + 4);
+    }
 };
 
 struct EGPanel : BasePanel
