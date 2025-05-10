@@ -527,6 +527,7 @@ void ElfinMainPanel::showMainMenu()
                   if (w)
                       w->loadPatch();
               });
+    p.addSeparator();
     p.addItem("Resend Patch to MIDI",
               [w = juce::Component::SafePointer(this)]()
               {
@@ -534,6 +535,17 @@ void ElfinMainPanel::showMainMenu()
                       return;
                   for (auto p : w->processor.params)
                       p->invalid = true;
+              });
+    p.addItem("Reset to Default",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  for (auto p : w->processor.params)
+                  {
+                      auto f = p->getFloatForCC(p->desc.midiCCDefault);
+                      p->setValueNotifyingHost(f);
+                  }
               });
     p.addSeparator();
     p.addItem("About", []() { ELFLOG("TODO: A reasonable about screen"); });
