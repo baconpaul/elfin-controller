@@ -451,8 +451,8 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
     lnf = std::make_unique<sst::jucegui::style::LookAndFeelManager>(this);
     lnf->setStyle(style());
 
-    mainMenu = std::make_unique<sst::jucegui::components::MenuButton>();
-    mainMenu->setLabel("Main Menu");
+    mainMenu = std::make_unique<sst::jucegui::components::GlyphButton>(
+        sst::jucegui::components::GlyphPainter::GlyphType::SETTINGS);
     mainMenu->setOnCallback(
         [w = juce::Component::SafePointer(this)]()
         {
@@ -480,26 +480,15 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
     settingsPanel = std::make_unique<SettingsPanel>(*this, p);
     addAndMakeVisible(*settingsPanel);
 
-    versionLabel = std::make_unique<sst::jucegui::components::Label>();
+    titleLabel = std::make_unique<sst::jucegui::components::Label>();
+    titleLabel->setText("Elfin-04 Polysynth Controller");
+    titleLabel->setFontHeightOverride(28);
+    addAndMakeVisible(*titleLabel);
 
-    std::string os = "";
-#if JUCE_MAC
-    os = "macOS";
-#endif
-#if JUCE_WINDOWS
-    os = "Windows";
-#endif
-#if JUCE_LINUX
-    os = "Linux";
-#endif
-
-    auto bi = os + " / " + sst::plugininfra::VersionInformation::git_commit_hash;
-
-    versionLabel->setText(std::string() +
-                          sst::plugininfra::VersionInformation::git_implied_display_version +
-                          " / " + bi);
-    versionLabel->setJustification(juce::Justification::topLeft);
-    addAndMakeVisible(*versionLabel);
+    hideawayLabel = std::make_unique<sst::jucegui::components::Label>();
+    hideawayLabel->setText("Hideaway Studios");
+    hideawayLabel->setFontHeightOverride(15);
+    addAndMakeVisible(*hideawayLabel);
 
     timer = std::make_unique<IdleTimer>(this);
     timer->startTimer(50);
@@ -546,6 +535,15 @@ void ElfinMainPanel::showMainMenu()
                   for (auto p : w->processor.params)
                       p->invalid = true;
               });
+    p.addSeparator();
+    p.addItem("About", []() { ELFLOG("TODO: A reasonable about screen"); });
+    p.addItem(
+        "Source Code", []()
+        { juce::URL("https://github.com/baconpaul/elfin-controller").launchInDefaultBrowser(); });
+
+    auto vi = std::string() + sst::plugininfra::VersionInformation::git_implied_display_version +
+              " " + sst::plugininfra::VersionInformation::git_commit_hash;
+    p.addItem(vi, false, false, []() {});
     p.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this));
 }
 
@@ -553,8 +551,14 @@ void ElfinMainPanel::resized()
 {
     static constexpr int margin{4};
     auto b = getLocalBounds().reduced(5);
-    mainMenu->setBounds(b.withWidth(200).withHeight(30));
-    b = b.withTrimmedTop(35);
+
+    auto l1 = b.withHeight(30);
+    titleLabel->setBounds(l1.reduced(60, 0));
+    hideawayLabel->setBounds(l1.translated(0, 30).withHeight(20).reduced(60, 0));
+
+    mainMenu->setBounds(l1.withHeight(50).withWidth(50));
+
+    b = b.withTrimmedTop(55);
     auto fpB = b.withWidth(210).withHeight(100);
     filterPanel->setBounds(fpB);
     oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
@@ -567,9 +571,6 @@ void ElfinMainPanel::resized()
         egPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
     settingsPanel->setBounds(
         lfoPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
-
-    auto lb = getLocalBounds().withTop(getBottom() - 20).reduced(2);
-    versionLabel->setBounds(lb);
 }
 
 void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }

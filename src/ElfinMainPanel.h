@@ -23,6 +23,7 @@
 #include "sst/jucegui/components/Label.h"
 #include "sst/jucegui/components/MenuButton.h"
 #include "sst/jucegui/components/ToolTip.h"
+#include "sst/jucegui/components/GlyphButton.h"
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/style/JUCELookAndFeelAdapter.h"
 #include "ElfinProcessor.h"
@@ -45,7 +46,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     ElfinMainPanel(ElfinControllerAudioProcessor &);
     ~ElfinMainPanel();
 
-    std::unique_ptr<sst::jucegui::components::MenuButton> mainMenu;
+    std::unique_ptr<sst::jucegui::components::GlyphButton> mainMenu;
     void showMainMenu();
 
     std::vector<std::unique_ptr<sst::jucegui::data::Continuous>> otherSources;
@@ -66,7 +67,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     void updateToolTip(ElfinControllerAudioProcessor::float_param_t *);
     void hideToolTip();
 
-    std::unique_ptr<sst::jucegui::components::Label> versionLabel;
+    std::unique_ptr<sst::jucegui::components::Label> titleLabel, hideawayLabel;
 
     std::unique_ptr<sst::jucegui::style::LookAndFeelManager> lnf;
 
