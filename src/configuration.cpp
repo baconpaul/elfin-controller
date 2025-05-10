@@ -73,10 +73,6 @@ void setupConfiguration()
     ot.discreteRanges.emplace_back(88, 111, "Sqr/Saw");
     ot.discreteRanges.emplace_back(112, 127, "Sqr/Sqr");
 
-    auto &aeg = elfinConfig[EG_ON_OFF];
-    aeg.discreteRanges.emplace_back(0, 63, "Off");
-    aeg.discreteRanges.emplace_back(64, 127, "On");
-
     auto &sst = elfinConfig[SUB_TYPE];
     sst.discreteRanges.emplace_back(0, 31, "SIN");
     sst.discreteRanges.emplace_back(32, 95, "NOISE");
@@ -89,6 +85,8 @@ void setupConfiguration()
     lfot.discreteRanges.emplace_back(80, 111, "Rand");
     lfot.discreteRanges.emplace_back(112, 127, "Sqr");
 
+    elfinConfig[EG_ON_OFF].setAsTwoStage("Off", "On");
+    elfinConfig[EG_R].setAsTwoStage("Off", "On");
     elfinConfig[LFO_TO_PITCH_TARGET].setAsTwoStage("1 and 2", "2");
     elfinConfig[EG_TO_PITCH_TARGET].setAsTwoStage("1 and 2", "2");
     elfinConfig[EXP_BY_VEL].setAsTwoStage("Off", "On");
