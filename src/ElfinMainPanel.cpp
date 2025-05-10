@@ -21,6 +21,7 @@
 #include "sst/jucegui/components/Label.h"
 #include "sst/jucegui/components/Knob.h"
 #include "sst/jucegui/components/MultiSwitch.h"
+#include "sst/jucegui/layouts/ListLayout.h"
 
 namespace baconpaul::elfin_controller
 {
@@ -339,10 +340,9 @@ struct OscPanel : BasePanel
 
     std::unique_ptr<sst::jucegui::components::MultiSwitch> o1t, o2t;
 
-    std::vector<ElfinControl> contents{ElfinControl::OSC12_MIX,         ElfinControl::OSC2_COARSE,
-                                       ElfinControl::OSC2_FINE,         ElfinControl::SUB_TYPE,
-                                       ElfinControl::SUB_LEVEL,         ElfinControl::EG_TO_PITCH,
-                                       ElfinControl::EG_TO_PITCH_TARGET};
+    std::vector<ElfinControl> contents{ElfinControl::OSC12_MIX, ElfinControl::OSC2_COARSE,
+                                       ElfinControl::OSC2_FINE, ElfinControl::SUB_TYPE,
+                                       ElfinControl::SUB_LEVEL, ElfinControl::OSC_LEVEL};
     OscPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Oscillator")
     {
         auto typepar = p.params[OSC12_TYPE];
@@ -420,11 +420,21 @@ struct ModPanel : BasePanel
 
 struct SettingsPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::PORTA,           ElfinControl::LEGATO,
-                                       ElfinControl::KEY_ASSIGN_MODE, ElfinControl::OSC_LEVEL,
-                                       ElfinControl::UNI_DETUNE,      ElfinControl::POLY_UNI_MODE,
-                                       ElfinControl::DAMP_AND_ATTACK};
+    std::vector<ElfinControl> contents{
+        ElfinControl::PORTA,      ElfinControl::LEGATO,        ElfinControl::KEY_ASSIGN_MODE,
+        ElfinControl::UNI_DETUNE, ElfinControl::POLY_UNI_MODE, ElfinControl::DAMP_AND_ATTACK};
     SettingsPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "SETTINGS")
+    {
+        createFrom(p, contents);
+    }
+    void resized() override { resizeInOrder(contents); }
+};
+
+struct OrphanPanel : BasePanel
+{
+    std::vector<ElfinControl> contents{ElfinControl::EG_TO_PITCH, ElfinControl::EG_TO_PITCH_TARGET};
+    OrphanPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p)
+        : BasePanel(m, "ORPHANS (Park controls here while I re-set sections)")
     {
         createFrom(p, contents);
     }
@@ -479,6 +489,9 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p)
 
     settingsPanel = std::make_unique<SettingsPanel>(*this, p);
     addAndMakeVisible(*settingsPanel);
+
+    orphanPanel = std::make_unique<OrphanPanel>(*this, p);
+    addAndMakeVisible(*orphanPanel);
 
     titleLabel = std::make_unique<sst::jucegui::components::Label>();
     titleLabel->setText("Elfin-04 Polysynth Controller");
@@ -561,21 +574,42 @@ void ElfinMainPanel::showMainMenu()
 
 void ElfinMainPanel::resized()
 {
-    static constexpr int margin{4};
-    auto b = getLocalBounds().reduced(5);
+    static constexpr int outerMargin{5}, margin{4};
+    static constexpr int labelHeight{30}, subLabelHeight{20}, sectionHeight{100};
 
-    auto l1 = b.withHeight(30);
-    titleLabel->setBounds(l1.reduced(60, 0));
-    hideawayLabel->setBounds(l1.translated(0, 30).withHeight(20).reduced(60, 0));
+    auto b = getLocalBounds().reduced(outerMargin);
 
-    mainMenu->setBounds(l1.withHeight(50).withWidth(50));
+    auto l1 = b.withHeight(labelHeight);
+    titleLabel->setBounds(l1.reduced(labelHeight + subLabelHeight + margin, 0));
+    hideawayLabel->setBounds(l1.translated(0, labelHeight)
+                                 .withHeight(subLabelHeight)
+                                 .reduced(labelHeight + subLabelHeight + margin, 0));
+    mainMenu->setBounds(
+        l1.withHeight(labelHeight + subLabelHeight).withWidth(labelHeight + subLabelHeight));
 
-    b = b.withTrimmedTop(55);
-    auto fpB = b.withWidth(210).withHeight(100);
-    filterPanel->setBounds(fpB);
-    oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
-    egPanel->setBounds(
-        filterPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(360));
+    auto listArea = b.withTrimmedTop(labelHeight + subLabelHeight + margin);
+
+    namespace jlo = sst::jucegui::layouts;
+    auto lo = jlo::VList()
+                  .at(listArea.getX(), listArea.getY())
+                  .withWidth(listArea.getWidth())
+                  .withAutoGap(margin);
+
+    auto row1 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
+    row1.add(jlo::Component(*oscPanel).withWidth(550));
+    row1.add(jlo::Component(*filterPanel).withWidth(210));
+
+    lo.add(row1);
+
+    lo.doLayout();
+
+    // This is the old UI down here
+
+    b = b.withTrimmedTop(labelHeight + subLabelHeight + margin + sectionHeight + margin + 30);
+    auto fpB = b.withWidth(210).withHeight(sectionHeight);
+    // filterPanel->setBounds(fpB);
+    //  oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
+    egPanel->setBounds(fpB.withWidth(360));
     modPanel->setBounds(
         egPanel->getBounds().translated(egPanel->getWidth() + margin, 0).withWidth(360));
 
@@ -583,6 +617,8 @@ void ElfinMainPanel::resized()
         egPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
     settingsPanel->setBounds(
         lfoPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
+    orphanPanel->setBounds(
+        settingsPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
 }
 
 void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }
