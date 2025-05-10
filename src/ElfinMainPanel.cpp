@@ -25,6 +25,11 @@
 
 namespace baconpaul::elfin_controller
 {
+
+static constexpr int outerMargin{5}, margin{5}, interControlMargin{15};
+static constexpr int labelHeight{30}, subLabelHeight{20}, sectionHeight{104};
+static constexpr int widgetHeight{53}, widgetLabelHeight{17};
+
 struct ParamSource : sst::jucegui::data::Continuous
 {
     ElfinControllerAudioProcessor::float_param_t *par{nullptr};
@@ -97,12 +102,16 @@ struct BasePanel : sst::jucegui::components::NamedPanel
     BasePanel(ElfinMainPanel &m, const std::string &s) : main(m), NamedPanel(s) {}
 
     template <typename W = sst::jucegui::components::Knob>
-    W *attach(ElfinControllerAudioProcessor &p, ElfinControl c)
+    W *attach(ElfinControllerAudioProcessor &p, ElfinControl c, bool drawLabel)
     {
         std::unique_ptr<W> wid;
         std::unique_ptr<ParamSource> ps;
         bindAndAdd(ps, wid, p.params[c]);
         auto res = wid.get();
+        if constexpr (std::is_same_v<W, sst::jucegui::components::Knob>)
+        {
+            res->setDrawLabel(drawLabel);
+        }
         main.sources[c] = std::move(ps);
         main.widgets[c] = std::move(wid);
         return res;
@@ -168,6 +177,33 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         b->setBounds(bb);
     }
 
+    void resizeUsingLayout(const std::vector<ElfinControl> &contents)
+    {
+        auto lo = getLayoutHList();
+        layoutInto(lo, contents);
+        lo.doLayout();
+    }
+
+    sst::jucegui::layouts::LayoutComponent getLayoutHList()
+    {
+        auto c = getContentArea().reduced(2, 0);
+        namespace jlo = sst::jucegui::layouts;
+
+        auto lo = jlo::HList()
+                      .withHeight(c.getHeight())
+                      .withAutoGap(interControlMargin)
+                      .at(c.getX(), c.getY());
+        return lo;
+    }
+    void layoutInto(sst::jucegui::layouts::LayoutComponent &lo,
+                    const std::vector<ElfinControl> &contents)
+    {
+        for (auto c : contents)
+        {
+            lo.add(controlLayoutComponent(c));
+        }
+    }
+
     void resizeInOrder(const std::vector<ElfinControl> &order, int xTrim = 0)
     {
         auto c = getContentArea();
@@ -181,20 +217,68 @@ struct BasePanel : sst::jucegui::components::NamedPanel
         }
     }
 
-    void createFrom(ElfinControllerAudioProcessor &p, const std::vector<ElfinControl> &contents)
+    sst::jucegui::layouts::LayoutComponent controlLayoutComponent(ElfinControl c,
+                                                                  size_t width = widgetHeight)
+    {
+        auto res = sst::jucegui::layouts::VList().withWidth(width);
+
+        auto wit = main.widgets.find(c);
+        auto lit = main.widgetLabels.find(c);
+
+        if (wit != main.widgets.end())
+            res.add(sst::jucegui::layouts::Component(*wit->second)
+                        .withHeight(widgetHeight)
+                        .withWidth(width));
+        else
+            res.addGap(widgetHeight);
+
+        if (lit != main.widgetLabels.end())
+            res.add(sst::jucegui::layouts::Component(*lit->second)
+                        .withHeight(widgetLabelHeight)
+                        .withWidth(width));
+
+        return res;
+    }
+
+    sst::jucegui::layouts::LayoutComponent
+    labeledItem(juce::Component &item, juce::Component &label, size_t width = widgetHeight)
+    {
+        auto res = sst::jucegui::layouts::VList().withWidth(width);
+
+        res.add(sst::jucegui::layouts::Component(item).withHeight(widgetHeight).withWidth(width));
+        res.add(
+            sst::jucegui::layouts::Component(label).withHeight(widgetLabelHeight).withWidth(width));
+
+        return res;
+    }
+
+    void createFrom(ElfinControllerAudioProcessor &p, const std::vector<ElfinControl> &contents,
+                    bool drawLabel = true)
     {
         for (auto &c : contents)
         {
             auto par = p.params[c];
             if (!par)
                 continue;
+            bool makeLabel{false};
             if (par->desc.hasDiscreteRanges())
             {
                 attachDiscrete(p, c);
+                makeLabel = true;
             }
             else
             {
-                attach(p, c);
+                attach(p, c, drawLabel);
+                makeLabel = !drawLabel;
+            }
+
+            if (makeLabel)
+            {
+                auto lab = std::make_unique<sst::jucegui::components::Label>();
+                lab->setText(par->desc.label);
+                lab->setJustification(juce::Justification::centred);
+                addAndMakeVisible(*lab);
+                main.widgetLabels[c] = std::move(lab);
             }
         }
     }
@@ -202,13 +286,12 @@ struct BasePanel : sst::jucegui::components::NamedPanel
 
 struct FilterPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::FILT_CUTOFF, ElfinControl::FILT_RESONANCE,
-                                       ElfinControl::FILT_EG};
+    std::vector<ElfinControl> contents{ElfinControl::FILT_CUTOFF, ElfinControl::FILT_RESONANCE};
     FilterPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Filter")
     {
-        createFrom(p, contents);
+        createFrom(p, contents, false);
     }
-    void resized() override { resizeInOrder(contents); }
+    void resized() override { resizeUsingLayout(contents); }
 };
 
 struct OscPanel : BasePanel
@@ -339,6 +422,7 @@ struct OscPanel : BasePanel
     };
 
     std::unique_ptr<sst::jucegui::components::MultiSwitch> o1t, o2t;
+    std::unique_ptr<sst::jucegui::components::Label> o1lab, o2lab;
 
     std::vector<ElfinControl> contents{ElfinControl::OSC12_MIX, ElfinControl::OSC2_COARSE,
                                        ElfinControl::OSC2_FINE, ElfinControl::SUB_TYPE,
@@ -356,25 +440,34 @@ struct OscPanel : BasePanel
         o1t->setSource(p1.get());
         addAndMakeVisible(*o1t);
 
+        o1lab = std::make_unique<sst::jucegui::components::Label>();
+        o1lab->setText("Osc 1");
+        o1lab->setJustification(juce::Justification::centred);
+        addAndMakeVisible(*o1lab);
+
         o2t = std::make_unique<sst::jucegui::components::MultiSwitch>();
         o2t->setSource(p2.get());
         addAndMakeVisible(*o2t);
 
+        o2lab = std::make_unique<sst::jucegui::components::Label>();
+        o2lab->setText("Osc 2");
+        o2lab->setJustification(juce::Justification::centred);
+        addAndMakeVisible(*o2lab);
+
         m.otherDiscrete.push_back(std::move(p1));
         m.otherDiscrete.push_back(std::move(p2));
 
-        createFrom(p, contents);
+        createFrom(p, contents, false);
     }
     void resized() override
     {
-        auto c = getContentArea();
-        auto kHeight = c.getHeight();
-        auto bx = c.withWidth(kHeight - 24).withHeight(kHeight).translated(2, 0);
-        o1t->setBounds(bx);
-        bx = bx.translated(kHeight - 24, 0);
-        o2t->setBounds(bx);
+        auto lo = getLayoutHList();
+        lo.add(labeledItem(*o1t, *o1lab));
+        lo.add(labeledItem(*o2t, *o2lab));
 
-        resizeInOrder(contents, 2 * kHeight - 48 + 4);
+        layoutInto(lo, contents);
+
+        lo.doLayout();
     }
 };
 
@@ -432,7 +525,8 @@ struct SettingsPanel : BasePanel
 
 struct OrphanPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::EG_TO_PITCH, ElfinControl::EG_TO_PITCH_TARGET};
+    std::vector<ElfinControl> contents{ElfinControl::EG_TO_PITCH, ElfinControl::EG_TO_PITCH_TARGET,
+                                       ElfinControl::FILT_EG};
     OrphanPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p)
         : BasePanel(m, "ORPHANS (Park controls here while I re-set sections)")
     {
@@ -574,9 +668,6 @@ void ElfinMainPanel::showMainMenu()
 
 void ElfinMainPanel::resized()
 {
-    static constexpr int outerMargin{5}, margin{4};
-    static constexpr int labelHeight{30}, subLabelHeight{20}, sectionHeight{100};
-
     auto b = getLocalBounds().reduced(outerMargin);
 
     auto l1 = b.withHeight(labelHeight);
@@ -597,7 +688,7 @@ void ElfinMainPanel::resized()
 
     auto row1 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
     row1.add(jlo::Component(*oscPanel).withWidth(550));
-    row1.add(jlo::Component(*filterPanel).withWidth(210));
+    row1.add(jlo::Component(*filterPanel).withWidth(135));
 
     lo.add(row1);
 

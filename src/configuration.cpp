@@ -25,7 +25,7 @@ void setupConfiguration()
         {OSC2_COARSE, {"osc2_coarse", "OSC2 Coarse", "2 Coarse", 20, 64, true}},
         {OSC2_FINE, {"osc2_fine", "OSC2 Fine", "2 Fine", 21, 68, true}},
 
-        {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cut", 16, 65}},
+        {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cutoff", 16, 65}},
         {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Res", 17, 82}},
         {FILT_EG, {"filt_eg", "Filter EG to Cutoff", "EG>CO", 18, 77, true}},
 

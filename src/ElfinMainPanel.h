@@ -55,6 +55,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     std::map<ElfinControl, std::unique_ptr<ParamSource>> sources;
     std::map<ElfinControl, std::unique_ptr<DiscreteParamSource>> discreteSources;
     std::map<ElfinControl, std::unique_ptr<juce::Component>> widgets;
+    std::map<ElfinControl, std::unique_ptr<sst::jucegui::components::Label>> widgetLabels;
 
     std::unique_ptr<FilterPanel> filterPanel;
     std::unique_ptr<OscPanel> oscPanel;
