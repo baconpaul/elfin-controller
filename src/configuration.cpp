@@ -61,7 +61,7 @@ void setupConfiguration()
         {KEY_ASSIGN_MODE, {"key_assign", "Key Assign", "KAsn", 87, 119}},
         {OSC_LEVEL, {"osc_level", "OSC Level", "OscLev", 108, 127}},
         {UNI_DETUNE, {"uni_detune", "Unison Detune", "UniDt", 109, 24}},
-        {POLY_UNI_MODE, {"poly_uni", "Poly Unison Mode", "PUMode", 110, 31}},
+        {POLY_UNI_MODE, {"poly_uni", "Poly Unison Mode", "Mode", 110, 31}},
         {DAMP_AND_ATTACK, {"damp_and_attack", "Damp and Attack", "Dmp/Atk", 111, 64}}};
 
     // Set up the discrete ranges

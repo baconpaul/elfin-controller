@@ -106,8 +106,7 @@ struct BasePanel : jcmp::NamedPanel
     ElfinMainPanel &main;
     BasePanel(ElfinMainPanel &m, const std::string &s) : main(m), NamedPanel(s) {}
 
-    template <typename W = jcmp::Knob>
-    W *attach(ElfinControllerAudioProcessor &p, ElfinControl c, bool drawLabel)
+    template <typename W = jcmp::Knob> W *attach(ElfinControllerAudioProcessor &p, ElfinControl c)
     {
         std::unique_ptr<W> wid;
         std::unique_ptr<ParamSource> ps;
@@ -115,7 +114,7 @@ struct BasePanel : jcmp::NamedPanel
         auto res = wid.get();
         if constexpr (std::is_same_v<W, jcmp::Knob>)
         {
-            res->setDrawLabel(drawLabel);
+            res->setDrawLabel(false);
         }
         main.sources[c] = std::move(ps);
         main.widgets[c] = std::move(wid);
@@ -175,13 +174,6 @@ struct BasePanel : jcmp::NamedPanel
         };
     }
 
-    template <typename A, typename B> void placeBelow(const A &a, const B &b)
-    {
-        auto ab = a->getBounds();
-        auto bb = ab.translated(0, ab.getHeight()).withHeight(14);
-        b->setBounds(bb);
-    }
-
     void resizeUsingLayout(const std::vector<ElfinControl> &contents)
     {
         auto lo = getLayoutHList();
@@ -204,19 +196,6 @@ struct BasePanel : jcmp::NamedPanel
         for (auto c : contents)
         {
             lo.add(controlLayoutComponent(c));
-        }
-    }
-
-    void resizeInOrder(const std::vector<ElfinControl> &order, int xTrim = 0)
-    {
-        auto c = getContentArea();
-        c = c.withTrimmedLeft(xTrim);
-        auto kHeight = c.getHeight();
-        auto bx = c.withWidth(kHeight - 18).withHeight(kHeight).translated(2, 0);
-        for (auto &c : order)
-        {
-            main.widgets[c]->setBounds(bx);
-            bx = bx.translated(kHeight, 0);
         }
     }
 
@@ -258,24 +237,21 @@ struct BasePanel : jcmp::NamedPanel
         main.widgetLabels[c] = std::move(lab);
     }
 
-    void createFrom(ElfinControllerAudioProcessor &p, const std::vector<ElfinControl> &contents,
-                    bool drawLabel = true)
+    void createFrom(ElfinControllerAudioProcessor &p, const std::vector<ElfinControl> &contents)
     {
         for (auto &c : contents)
         {
             auto par = p.params[c];
             if (!par)
                 continue;
-            bool makeLabel{false};
+            bool makeLabel{true};
             if (par->desc.hasDiscreteRanges())
             {
                 attachDiscrete(p, c);
-                makeLabel = true;
             }
             else
             {
-                attach(p, c, drawLabel);
-                makeLabel = !drawLabel;
+                attach(p, c);
             }
 
             if (makeLabel)
@@ -292,7 +268,7 @@ struct FilterPanel : BasePanel
                                        ElfinControl::PITCH_TO_CUTOFF};
     FilterPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Filter")
     {
-        createFrom(p, contents, false);
+        createFrom(p, contents);
     }
     void resized() override { resizeUsingLayout(contents); }
 };
@@ -460,7 +436,7 @@ struct OscPanel : BasePanel
         m.otherDiscrete.push_back(std::move(p1));
         m.otherDiscrete.push_back(std::move(p2));
 
-        createFrom(p, contents, false);
+        createFrom(p, contents);
     }
     void resized() override
     {
@@ -480,11 +456,11 @@ struct EGPanel : BasePanel
                                        ElfinControl::EG_D, ElfinControl::EG_S, ElfinControl::EG_R};
     EGPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "EG")
     {
-        attach<jcmp::VSlider>(p, EG_A, false);
+        attach<jcmp::VSlider>(p, EG_A);
         addLabel(EG_A, "A");
-        attach<jcmp::VSlider>(p, EG_D, false);
+        attach<jcmp::VSlider>(p, EG_D);
         addLabel(EG_D, "D");
-        attach<jcmp::VSlider>(p, EG_S, false);
+        attach<jcmp::VSlider>(p, EG_S);
         addLabel(EG_S, "S");
 
         auto tb = attachDiscrete<jcmp::ToggleButton>(p, EG_ON_OFF);
@@ -495,11 +471,11 @@ struct EGPanel : BasePanel
         rb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
         rb->setLabel("Release");
 
-        attach(p, EG_TO_LFORATE, false);
+        attach(p, EG_TO_LFORATE);
         addLabel(EG_TO_LFORATE, rightArrow + "Rate");
-        attach(p, EG_TO_CUTOFF, false);
+        attach(p, EG_TO_CUTOFF);
         addLabel(EG_TO_CUTOFF, rightArrow + "Cutoff");
-        attach(p, EG_TO_PITCH, false);
+        attach(p, EG_TO_PITCH);
         addLabel(EG_TO_PITCH, rightArrow + "Pitch");
 
         attachDiscrete(p, EG_TO_PITCH_TARGET);
@@ -547,17 +523,17 @@ struct LFOPanel : BasePanel
     {
         attachDiscrete(p, LFO_TYPE);
 
-        attach(p, LFO_RATE, false);
+        attach(p, LFO_RATE);
         addLabel(LFO_RATE, "Rate");
-        attach(p, LFO_DEPTH, false);
+        attach(p, LFO_DEPTH);
         addLabel(LFO_DEPTH, "Depth");
-        attach(p, LFO_FADE_TIME, false);
+        attach(p, LFO_FADE_TIME);
         addLabel(LFO_FADE_TIME, "Fade In");
 
-        attach(p, LFO_TO_CUTOFF, false);
+        attach(p, LFO_TO_CUTOFF);
         addLabel(LFO_TO_CUTOFF, rightArrow + "Cutoff");
 
-        attach(p, LFO_TO_PITCH, false);
+        attach(p, LFO_TO_PITCH);
         addLabel(LFO_TO_PITCH, rightArrow + "Pitch");
         attachDiscrete(p, LFO_TO_PITCH_TARGET);
     }
@@ -595,10 +571,10 @@ struct ModPanel : BasePanel
                                        ElfinControl::EXP_BY_VEL};
     ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Expression")
     {
-        attach(p, EXP_TO_CUTOFF, false);
+        attach(p, EXP_TO_CUTOFF);
         addLabel(EXP_TO_CUTOFF, rightArrow + "Cutoff");
 
-        attach(p, EXP_TO_AMP_LEVEL, false);
+        attach(p, EXP_TO_AMP_LEVEL);
         addLabel(EXP_TO_AMP_LEVEL, rightArrow + "Amp");
 
         auto tb = attachDiscrete<jcmp::ToggleButton>(p, EXP_BY_VEL);
@@ -619,26 +595,34 @@ struct ModPanel : BasePanel
 
 struct SettingsPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::PBEND_RANGE,    ElfinControl::PORTA,
+    std::vector<ElfinControl> contents{ElfinControl::POLY_UNI_MODE,  ElfinControl::PBEND_RANGE,
+                                       ElfinControl::PORTA,          ElfinControl::UNI_DETUNE,
                                        ElfinControl::LEGATO,         ElfinControl::KEY_ASSIGN_MODE,
-                                       ElfinControl::UNI_DETUNE,     ElfinControl::POLY_UNI_MODE,
-                                       ElfinControl::DAMP_AND_ATTACK};
-    SettingsPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "SETTINGS")
-    {
-        createFrom(p, contents);
-    }
-    void resized() override { resizeInOrder(contents); }
-};
 
-struct OrphanPanel : BasePanel
-{
-    std::vector<ElfinControl> contents{};
-    OrphanPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p)
-        : BasePanel(m, "ORPHANS (Park controls here while I re-set sections)")
+                                       ElfinControl::DAMP_AND_ATTACK};
+    SettingsPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p)
+        : BasePanel(m, "Voice Manager")
     {
         createFrom(p, contents);
     }
-    void resized() override { resizeInOrder(contents); }
+    void resized() override
+    {
+        auto lo = getLayoutHList();
+        for (auto c : contents)
+        {
+            if (c != KEY_ASSIGN_MODE)
+            {
+                lo.add(controlLayoutComponent(c));
+            }
+            else
+            {
+                lo.add(jlo::Component(*main.widgets[KEY_ASSIGN_MODE])
+                           .withWidth(widgetHeight * 1.5)
+                           .withHeight(widgetHeight + widgetLabelHeight));
+            }
+        }
+        lo.doLayout();
+    }
 };
 
 struct IdleTimer : juce::Timer
@@ -687,9 +671,6 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
 
     settingsPanel = std::make_unique<SettingsPanel>(*this, p);
     addAndMakeVisible(*settingsPanel);
-
-    orphanPanel = std::make_unique<OrphanPanel>(*this, p);
-    addAndMakeVisible(*orphanPanel);
 
     titleLabel = std::make_unique<jcmp::Label>();
     titleLabel->setText("Elfin-04 Polysynth Controller");
@@ -804,22 +785,10 @@ void ElfinMainPanel::resized()
     row3.add(jlo::Component(*lfoPanel).withWidth(472));
     lo.add(row3);
 
+    auto row4 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
+    row4.add(jlo::Component(*settingsPanel).withWidth(550));
+    lo.add(row4);
     lo.doLayout();
-
-    // This is the old UI down here
-
-    b = b.withTrimmedTop(labelHeight + subLabelHeight + margin + 3 * (sectionHeight + margin) + 10);
-    auto fpB = b.withWidth(210).withHeight(sectionHeight);
-    // filterPanel->setBounds(fpB);
-    //  oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
-    // egPanel->setBounds(fpB.withWidth(360));
-    // modPanel->setBounds(fpB.withWidth(360));
-
-    // lfoPanel->setBounds(
-    //        modPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
-    settingsPanel->setBounds(fpB.withWidth(600));
-    orphanPanel->setBounds(
-        settingsPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
 }
 
 void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }

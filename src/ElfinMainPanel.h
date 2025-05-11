@@ -36,7 +36,6 @@ struct EGPanel;
 struct LFOPanel;
 struct ModPanel;
 struct SettingsPanel;
-struct OrphanPanel;
 
 struct ParamSource;
 struct DiscreteParamSource;
@@ -63,7 +62,6 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     std::unique_ptr<LFOPanel> lfoPanel;
     std::unique_ptr<ModPanel> modPanel;
     std::unique_ptr<SettingsPanel> settingsPanel;
-    std::unique_ptr<OrphanPanel> orphanPanel;
 
     std::unique_ptr<sst::jucegui::components::ToolTip> toolTip;
     void showToolTip(ElfinControllerAudioProcessor::float_param_t *, juce::Component *);
