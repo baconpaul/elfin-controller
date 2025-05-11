@@ -503,7 +503,6 @@ struct EGPanel : BasePanel
         addLabel(EG_TO_PITCH, rightArrow + "Pitch");
 
         attachDiscrete(p, EG_TO_PITCH_TARGET);
-        addLabel(EG_TO_PITCH_TARGET, "Target");
         // createFrom(p, contents);
     }
     void resized() override
@@ -534,9 +533,6 @@ struct EGPanel : BasePanel
                    .withHeight(widgetLabelHeight));
         lo.add(pl);
 
-        // lo.add(controlLayoutComponent(EG_TO_PITCH));
-        //  lo.add(controlLayoutComponent(EG_TO_PITCH_TARGET, 35));
-
         lo.doLayout();
     }
 };
@@ -549,20 +545,76 @@ struct LFOPanel : BasePanel
         ElfinControl::LFO_TO_PITCH_TARGET};
     LFOPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "LFO")
     {
-        createFrom(p, contents);
+        attachDiscrete(p, LFO_TYPE);
+
+        attach(p, LFO_RATE, false);
+        addLabel(LFO_RATE, "Rate");
+        attach(p, LFO_DEPTH, false);
+        addLabel(LFO_DEPTH, "Depth");
+        attach(p, LFO_FADE_TIME, false);
+        addLabel(LFO_FADE_TIME, "Fade In");
+
+        attach(p, LFO_TO_CUTOFF, false);
+        addLabel(LFO_TO_CUTOFF, rightArrow + "Cutoff");
+
+        attach(p, LFO_TO_PITCH, false);
+        addLabel(LFO_TO_PITCH, rightArrow + "Pitch");
+        attachDiscrete(p, LFO_TO_PITCH_TARGET);
     }
-    void resized() override { resizeInOrder(contents); }
+    void resized() override
+    {
+        auto lo = getLayoutHList();
+        lo.add(jlo::Component(*main.widgets[LFO_TYPE])
+                   .withHeight(widgetHeight + widgetLabelHeight)
+                   .withWidth(widgetHeight * 1.5));
+        lo.add(controlLayoutComponent(LFO_RATE));
+        lo.add(controlLayoutComponent(LFO_DEPTH));
+        lo.add(controlLayoutComponent(LFO_FADE_TIME));
+        lo.add(controlLayoutComponent(LFO_TO_CUTOFF));
+
+        static constexpr int tgtWidth{30};
+        auto pwid = widgetHeight + tgtWidth + margin;
+        auto pl = jlo::VList().withWidth(tgtWidth);
+        auto ptl = jlo::HList().withHeight(widgetHeight);
+        ptl.add(jlo::Component(*main.widgets[LFO_TO_PITCH]).withWidth(widgetHeight));
+        ptl.addGap(margin);
+        ptl.add(jlo::Component(*main.widgets[LFO_TO_PITCH_TARGET]).withWidth(tgtWidth));
+        pl.add(ptl);
+        pl.add(jlo::Component(*main.widgetLabels[LFO_TO_PITCH])
+                   .withWidth(pwid)
+                   .withHeight(widgetLabelHeight));
+        lo.add(pl);
+
+        lo.doLayout();
+    }
 };
 
 struct ModPanel : BasePanel
 {
     std::vector<ElfinControl> contents{ElfinControl::EXP_TO_CUTOFF, ElfinControl::EXP_TO_AMP_LEVEL,
                                        ElfinControl::EXP_BY_VEL};
-    ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "MOD")
+    ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Expression")
     {
-        createFrom(p, contents);
+        attach(p, EXP_TO_CUTOFF, false);
+        addLabel(EXP_TO_CUTOFF, rightArrow + "Cutoff");
+
+        attach(p, EXP_TO_AMP_LEVEL, false);
+        addLabel(EXP_TO_AMP_LEVEL, rightArrow + "Amp");
+
+        auto tb = attachDiscrete<jcmp::ToggleButton>(p, EXP_BY_VEL);
+        tb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
+        tb->setLabel("Vel " + rightArrow + " Exp");
     }
-    void resized() override { resizeInOrder(contents); }
+    void resized() override
+    {
+        auto lo = getLayoutHList();
+        lo.add(controlLayoutComponent(EXP_TO_CUTOFF));
+        lo.add(controlLayoutComponent(EXP_TO_AMP_LEVEL));
+        lo.add(jlo::Component(*main.widgets[EXP_BY_VEL])
+                   .withHeight(widgetHeight)
+                   .withWidth(widgetHeight * 1.25));
+        lo.doLayout();
+    }
 };
 
 struct SettingsPanel : BasePanel
@@ -745,10 +797,11 @@ void ElfinMainPanel::resized()
 
     auto row2 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
     row2.add(jlo::Component(*egPanel).withWidth(427));
+    row2.add(jlo::Component(*modPanel).withWidth(218));
     lo.add(row2);
 
     auto row3 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
-    row3.add(jlo::Component(*lfoPanel).withWidth(627));
+    row3.add(jlo::Component(*lfoPanel).withWidth(472));
     lo.add(row3);
 
     lo.doLayout();
@@ -760,12 +813,11 @@ void ElfinMainPanel::resized()
     // filterPanel->setBounds(fpB);
     //  oscPanel->setBounds(fpB.translated(fpB.getWidth() + margin, 0).withWidth(580));
     // egPanel->setBounds(fpB.withWidth(360));
-    modPanel->setBounds(fpB.withWidth(360));
+    // modPanel->setBounds(fpB.withWidth(360));
 
     // lfoPanel->setBounds(
     //        modPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
-    settingsPanel->setBounds(
-        modPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
+    settingsPanel->setBounds(fpB.withWidth(600));
     orphanPanel->setBounds(
         settingsPanel->getBounds().translated(0, fpB.getHeight() + margin).withWidth(600));
 }

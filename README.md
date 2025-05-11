@@ -26,16 +26,22 @@ Mechanics and Cleanups
 - Which base fns are unused?
 - some basic code comments would be nice
 - When done the drawLabel bool can go in attach etc
+- When done remove control lists
 
 Layout:
 - Section by section clean up (list them here) and layout
   - ~~OSC~~
   - ~~Filt~~
   - ~~EG (including pick up the orphan mods and move to sliders)~~
-  - LFO
-  - Mod
+  - ~~LFO~~
+  - ~~Mod~~
   - Settings/Voice
   - Remove Orphan section
 
 Future:
 - undo?
+
+
+Notes for DANI
+- Osc Leve -> zero doesn't seem to mute
+- Exp by Vel control doesnt seem to do much

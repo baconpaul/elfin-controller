@@ -27,7 +27,7 @@ void setupConfiguration()
 
         {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cutoff", 16, 65}},
         {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Res", 17, 82}},
-        {EG_TO_CUTOFF, {"filt_eg", "Filter EG to Cutoff", "EG>CO", 18, 77, true}},
+        {EG_TO_CUTOFF, {"eg_to_cutoff", "Filter EG to Cutoff", "EG>CO", 18, 77, true}},
 
         {SUB_TYPE, {"sub_type", "Sub Type", "SubType", 29, 15}},
         {SUB_LEVEL, {"sub_level", "Sub Level", "SubLev", 26, 79}},
@@ -45,7 +45,7 @@ void setupConfiguration()
         {LFO_RATE, {"lfo_rate", "LFO Rate", "Rate", 80, 15}},
         {LFO_DEPTH, {"lfo_depth", "LFO Depth", "Depth", 81, 30}},
         {LFO_TO_PITCH, {"lfo_to_pitch", "LFO To Pitch", "> Pitch", 82, 67, true}},
-        {LFO_TO_CUTOFF, {"lfo_tu_cutoff", "LFO To Cutoff", "> Cutoff", 83, true}},
+        {LFO_TO_CUTOFF, {"lfo_to_cutoff", "LFO To Cutoff", "> Cutoff", 83, true}},
         {LFO_TO_PITCH_TARGET, {"lfo_to_pitch_tgt", "LFO To Pitch Target", "Target", 9, 95}},
         {LFO_FADE_TIME, {"lfo_fade_time", "LFO Fade Time", "Fade T", 15, 15}},
         {EG_TO_LFORATE, {"eg_to_rate", "EG to LFO Rate", "EG > Rate", 3, 78, true}},
