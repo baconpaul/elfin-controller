@@ -674,6 +674,9 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
     hideawayLabel->setFontHeightOverride(15);
     addAndMakeVisible(*hideawayLabel);
 
+    aboutScreen = std::make_unique<ElfinAbout>();
+    addChildComponent(*aboutScreen);
+
     timer = std::make_unique<IdleTimer>(this);
     timer->startTimer(50);
 
@@ -732,7 +735,13 @@ void ElfinMainPanel::showMainMenu()
                   }
               });
     p.addSeparator();
-    p.addItem("About", []() { ELFLOG("TODO: A reasonable about screen"); });
+    p.addItem("About",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->aboutScreen->showOver(w.getComponent());
+              });
     p.addItem(
         "Source Code", []()
         { juce::URL("https://github.com/baconpaul/elfin-controller").launchInDefaultBrowser(); });

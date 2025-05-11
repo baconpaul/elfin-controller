@@ -84,6 +84,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   src/ElfinEditor.cpp
   src/ElfinProcessor.cpp
   src/ElfinMainPanel.cpp
+  src/ElfinAbout.cpp
   src/configuration.cpp
 )
 

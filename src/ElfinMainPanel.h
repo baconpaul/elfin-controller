@@ -27,6 +27,7 @@
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/style/JUCELookAndFeelAdapter.h"
 #include "ElfinProcessor.h"
+#include "ElfinAbout.h"
 
 namespace baconpaul::elfin_controller
 {
@@ -84,6 +85,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     std::unique_ptr<juce::FileChooser> fileChooser;
     void savePatch(), loadPatch(), setupUserPath();
     fs::path userPath;
+
+    std::unique_ptr<ElfinAbout> aboutScreen;
 
     bool isInterestedInFileDrag(const juce::StringArray &files) override;
     void filesDropped(const juce::StringArray &files, int x, int y) override;
