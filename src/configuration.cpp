@@ -74,16 +74,16 @@ void setupConfiguration()
     ot.discreteRanges.emplace_back(112, 127, "Sqr/Sqr");
 
     auto &sst = elfinConfig[SUB_TYPE];
-    sst.discreteRanges.emplace_back(0, 31, "SIN");
-    sst.discreteRanges.emplace_back(32, 95, "NOISE");
-    sst.discreteRanges.emplace_back(96, 127, "SQUARE");
+    sst.discreteRanges.emplace_back(0, 31, "Sin");
+    sst.discreteRanges.emplace_back(32, 95, "Noise");
+    sst.discreteRanges.emplace_back(96, 127, "Square");
 
     auto &lfot = elfinConfig[LFO_TYPE];
-    lfot.discreteRanges.emplace_back(0, 15, "Tri, No KT");
+    lfot.discreteRanges.emplace_back(0, 15, "Tri NoKT");
     lfot.discreteRanges.emplace_back(16, 47, "Tri");
-    lfot.discreteRanges.emplace_back(48, 79, "SAW Dn");
+    lfot.discreteRanges.emplace_back(48, 79, "Saw Dn");
     lfot.discreteRanges.emplace_back(80, 111, "Rand");
-    lfot.discreteRanges.emplace_back(112, 127, "Sqr");
+    lfot.discreteRanges.emplace_back(112, 127, "Square");
 
     elfinConfig[EG_ON_OFF].setAsTwoStage("Off", "On");
     elfinConfig[EG_R].setAsTwoStage("Off", "On");

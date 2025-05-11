@@ -7,11 +7,16 @@ Code is all MIT. But deps are GPL3 so final product is GPL3. You know the drill.
 
 ## BaconPaul TODOs roughly
 
+- Write this README
+  - how to download and install
+  - license
+
 ### Engine / Model ToDos ===
 
 - random patch
 - Scan user presets and make a menu
 - Baked in presets perhaps?
+- send program changes? or at least ge tthose as presets?
 
 ### UI ToDos
 

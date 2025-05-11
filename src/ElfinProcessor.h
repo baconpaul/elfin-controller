@@ -120,8 +120,9 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
         ElfinControl control;
         ElfinDescription desc;
         ElfinParam(ElfinControl c, juce::String sname, juce::String name, float def)
-            : control(c), juce::AudioParameterFloat(
-                              sname, name, juce::NormalisableRange<float>(0.0, 1.0, 0.001), def)
+            : control(c),
+              juce::AudioParameterFloat({sname, 1}, name,
+                                        juce::NormalisableRange<float>(0.0, 1.0, 0.001), def)
         {
             desc = elfinConfig.at(control);
         }
