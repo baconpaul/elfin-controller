@@ -25,6 +25,9 @@
 #include "sst/jucegui/components/ToggleButton.h"
 #include "sst/jucegui/layouts/ListLayout.h"
 
+// This is super gross
+#include "../libs/sst/sst-jucegui/src/sst/jucegui/components/KnobPainter.hxx"
+
 namespace baconpaul::elfin_controller
 {
 
@@ -34,6 +37,11 @@ namespace jlo = sst::jucegui::layouts;
 static constexpr int outerMargin{5}, margin{5}, interControlMargin{15};
 static constexpr int labelHeight{30}, subLabelHeight{20}, sectionHeight{104};
 static constexpr int widgetHeight{53}, widgetLabelHeight{17};
+
+struct CustomKnob : jcmp::Knob
+{
+    void paint(juce::Graphics &g);
+};
 
 struct ParamSource : sst::jucegui::data::Continuous
 {
@@ -106,13 +114,13 @@ struct BasePanel : jcmp::NamedPanel
     ElfinMainPanel &main;
     BasePanel(ElfinMainPanel &m, const std::string &s) : main(m), NamedPanel(s) {}
 
-    template <typename W = jcmp::Knob> W *attach(ElfinControllerAudioProcessor &p, ElfinControl c)
+    template <typename W = CustomKnob> W *attach(ElfinControllerAudioProcessor &p, ElfinControl c)
     {
         std::unique_ptr<W> wid;
         std::unique_ptr<ParamSource> ps;
         bindAndAdd(ps, wid, p.params[c]);
         auto res = wid.get();
-        if constexpr (std::is_same_v<W, jcmp::Knob>)
+        if constexpr (std::is_same_v<W, CustomKnob>)
         {
             res->setDrawLabel(false);
         }
@@ -133,7 +141,7 @@ struct BasePanel : jcmp::NamedPanel
         return res;
     }
 
-    template <typename W = jcmp::Knob, typename D = ParamSource>
+    template <typename W = CustomKnob, typename D = ParamSource>
     void bindAndAdd(std::unique_ptr<D> &d, std::unique_ptr<W> &w,
                     ElfinControllerAudioProcessor::float_param_t *p)
     {
@@ -632,6 +640,7 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
 
     setStyle(sst::jucegui::style::StyleSheet::getBuiltInStyleSheet(
         sst::jucegui::style::StyleSheet::DARK));
+    setupStyle();
 
     lnf = std::make_unique<sst::jucegui::style::LookAndFeelManager>(this);
     lnf->setStyle(style());
@@ -874,15 +883,20 @@ void ElfinMainPanel::showToolTip(ElfinControllerAudioProcessor::float_param_t *p
         toolTip = std::make_unique<jcmp::ToolTip>();
         addChildComponent(*toolTip);
     }
+    auto oc = c;
     toolTip->setVisible(true);
+    updateToolTip(p);
     auto bl = c->getBounds().getBottomLeft();
     while (c != this && c->getParentComponent())
     {
         c = c->getParentComponent();
         bl += c->getBounds().getTopLeft();
     }
+    if (bl.y > getHeight() * 0.85)
+    {
+        bl.y -= oc->getHeight() + toolTip->getHeight();
+    }
     toolTip->setTopLeftPosition(bl);
-    updateToolTip(p);
 }
 
 void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t *p)
@@ -929,4 +943,90 @@ void ElfinMainPanel::filesDropped(const juce::StringArray &files, int x, int y)
         processor.fromXML(s);
     }
 }
+
+void ElfinMainPanel::setupStyle()
+{
+    return;
+
+    const auto &st = style();
+    namespace jbs = jcmp::base_styles;
+
+    st->setColour(jbs::ValueBearing::styleClass, jbs::ValueBearing::value,
+                  juce::Colour(0xEE, 0xEE, 0x33));
+    st->setColour(jbs::ValueBearing::styleClass, jbs::ValueBearing::value_hover,
+                  juce::Colour(0xFF, 0xFF, 0x55));
+    st->setColour(jbs::Outlined::styleClass, jbs::Outlined::brightoutline,
+                  juce::Colour(0xEE, 0xEE, 0xEE));
+    st->setColour(jbs::BaseLabel::styleClass, jbs::BaseLabel::labelcolor,
+                  juce::Colour(0xEE, 0xEE, 0xEE));
+    st->setColour(jcmp::NamedPanel::Styles::styleClass, jcmp::NamedPanel::Styles::labelrule,
+                  juce::Colour(0xEE, 0xEE, 0xEE));
+    st->setColour(jcmp::NamedPanel::Styles::styleClass, jcmp::NamedPanel::Styles::background,
+                  juce::Colour(0x20, 0x20, 0x20));
+    st->setColour(jcmp::WindowPanel::Styles::styleClass, jcmp::WindowPanel::Styles::bgstart,
+                  juce::Colour(0x05, 0x05, 0x05));
+    st->setColour(jcmp::WindowPanel::Styles::styleClass, jcmp::WindowPanel::Styles::bgend,
+                  juce::Colour(0x0, 0x0, 0x0));
+}
+
+void CustomKnob::paint(juce::Graphics &g)
+{
+    jcmp::Knob::paint(g);
+    return;
+
+    jcmp::knobPainterNoBody(g, this, continuous());
+
+    auto b = getLocalBounds();
+    auto knobarea = b.withHeight(b.getWidth());
+
+    auto circle = [knobarea](float r) -> juce::Path
+    {
+        auto region = knobarea.toFloat().reduced(r);
+        auto p = juce::Path();
+        p.startNewSubPath(region.getCentreX(), region.getY());
+        p.addArc(region.getX(), region.getY(), region.getWidth(), region.getHeight(), 0,
+                 2 * juce::MathConstants<float>::pi);
+        p.closeSubPath();
+        return p;
+    };
+
+    auto c = juce::Colour(0xA0, 0xA0, 0x90);
+    auto graded = juce::ColourGradient::vertical(c.brighter(0.2), knobarea.getY(), c.darker(0.3),
+                                                 knobarea.getBottom());
+
+    int r0 = 8;
+    g.setColour(juce::Colours::black);
+    g.fillPath(circle(r0));
+    g.setGradientFill(graded);
+    g.fillPath(circle(r0 + 1));
+    auto ci = juce::Colour(0x20, 0x20, 0x20);
+    auto gradedo = juce::ColourGradient::vertical(ci.darker(0.2), knobarea.getY(), ci.brighter(0.3),
+                                                  knobarea.getBottom());
+
+    g.setGradientFill(gradedo);
+    g.fillPath(circle(r0 + 3));
+
+    auto handleAngle = [knobarea](float v) -> float
+    {
+        float dPath = 0.2;
+        float dAng = juce::MathConstants<float>::pi * (1 - dPath);
+        float pt = dAng * (2 * v - 1);
+        return pt;
+    };
+
+    g.saveState();
+    g.addTransform(juce::AffineTransform()
+                       .translated(-knobarea.getWidth() / 2, -knobarea.getHeight() / 2)
+                       .rotated(handleAngle(continuous()->getValue01()))
+                       .translated(knobarea.getWidth() / 2, knobarea.getHeight() / 2));
+
+    auto hanWidth = 2.f;
+    auto hanLen = 8.f;
+    auto hanRect =
+        juce::Rectangle<float>(knobarea.getWidth() / 2.f - hanWidth / 2.f, r0, hanWidth, hanLen);
+    g.setColour(juce::Colour(0xE0, 0xE0, 0xA0));
+    g.fillRect(hanRect);
+    g.restoreState();
+}
+
 } // namespace baconpaul::elfin_controller

@@ -90,6 +90,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
 
     bool isInterestedInFileDrag(const juce::StringArray &files) override;
     void filesDropped(const juce::StringArray &files, int x, int y) override;
+
+    void setupStyle();
 };
 } // namespace baconpaul::elfin_controller
 #endif // ELFINMAINPANEL_H
