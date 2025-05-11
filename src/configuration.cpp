@@ -27,7 +27,7 @@ void setupConfiguration()
 
         {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cutoff", 16, 65}},
         {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Res", 17, 82}},
-        {FILT_EG, {"filt_eg", "Filter EG to Cutoff", "EG>CO", 18, 77, true}},
+        {EG_TO_CUTOFF, {"filt_eg", "Filter EG to Cutoff", "EG>CO", 18, 77, true}},
 
         {SUB_TYPE, {"sub_type", "Sub Type", "SubType", 29, 15}},
         {SUB_LEVEL, {"sub_level", "Sub Level", "SubLev", 26, 79}},
@@ -51,7 +51,7 @@ void setupConfiguration()
         {EG_TO_LFORATE, {"eg_to_rate", "EG to LFO Rate", "EG > Rate", 3, 78, true}},
 
         {PBEND_RANGE, {"pbend_range", "Pitch Bend Range", "PB", 85, 51}},
-        {PITCH_TO_CUTOFF, {"pitch_to_cut", "Pitch to Cutoff", "Ptch>CO", 86, 64}},
+        {PITCH_TO_CUTOFF, {"pitch_to_cut", "Pitch to Cutoff", "KeyTrk", 86, 64}},
         {EXP_TO_CUTOFF, {"exp_to_cut", "Exp to Cutoff", "Exp>CO", 106, 64}},
         {EXP_TO_AMP_LEVEL, {"exp_to_amp", "Exp to Amp", "Exp>Amp", 107, 64}},
         {EXP_BY_VEL, {"exp_by_vel", "Exp by Vel", "Exp/Vel", 89, 31}},
@@ -87,8 +87,8 @@ void setupConfiguration()
 
     elfinConfig[EG_ON_OFF].setAsTwoStage("Off", "On");
     elfinConfig[EG_R].setAsTwoStage("Off", "On");
-    elfinConfig[LFO_TO_PITCH_TARGET].setAsTwoStage("1 and 2", "2");
-    elfinConfig[EG_TO_PITCH_TARGET].setAsTwoStage("1 and 2", "2");
+    elfinConfig[LFO_TO_PITCH_TARGET].setAsTwoStage("1+2", "2");
+    elfinConfig[EG_TO_PITCH_TARGET].setAsTwoStage("1+2", "2");
     elfinConfig[EXP_BY_VEL].setAsTwoStage("Off", "On");
     elfinConfig[LEGATO].setAsTwoStage("Off", "On");
     elfinConfig[POLY_UNI_MODE].setAsTwoStage("Poly", "Unison");

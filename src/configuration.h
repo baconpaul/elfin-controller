@@ -21,6 +21,8 @@
 
 namespace baconpaul::elfin_controller
 {
+inline static const std::string rightArrow = std::string("\u21E8") + " ";
+
 struct ElfinDescription
 {
     std::string streaming_name{};
@@ -69,7 +71,7 @@ enum ElfinControl
 
     FILT_CUTOFF,
     FILT_RESONANCE,
-    FILT_EG,
+    EG_TO_CUTOFF,
 
     EG_ON_OFF,
     EG_A,
