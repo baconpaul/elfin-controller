@@ -30,5 +30,4 @@ Future:
 - undo?
 
 Notes for DANI
-- Osc Leve -> zero doesn't seem to mute
-- Exp by Vel control doesnt seem to do much
+- Osc Level -> zero doesn't seem to mute

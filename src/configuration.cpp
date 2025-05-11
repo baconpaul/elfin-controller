@@ -54,7 +54,6 @@ void setupConfiguration()
         {PITCH_TO_CUTOFF, {"pitch_to_cut", "Pitch to Cutoff", "KeyTrk", 86, 64}},
         {EXP_TO_CUTOFF, {"exp_to_cut", "Exp to Cutoff", "Exp>CO", 106, 64}},
         {EXP_TO_AMP_LEVEL, {"exp_to_amp", "Exp to Amp", "Exp>Amp", 107, 64}},
-        {EXP_BY_VEL, {"exp_by_vel", "Exp by Vel", "Exp/Vel", 89, 31}},
 
         {PORTA, {"portamento", "Portamento", "Porta", 22, 95}},
         {LEGATO, {"legato", "Legato", "Legato", 30, 95}},
@@ -89,7 +88,6 @@ void setupConfiguration()
     elfinConfig[EG_R].setAsTwoStage("Off", "On");
     elfinConfig[LFO_TO_PITCH_TARGET].setAsTwoStage("1+2", "2");
     elfinConfig[EG_TO_PITCH_TARGET].setAsTwoStage("1+2", "2");
-    elfinConfig[EXP_BY_VEL].setAsTwoStage("Off", "On");
     elfinConfig[LEGATO].setAsTwoStage("Off", "On");
     elfinConfig[POLY_UNI_MODE].setAsTwoStage("Poly", "Unison");
 

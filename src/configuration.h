@@ -97,7 +97,6 @@ enum ElfinControl
     PORTA,
     LEGATO,
     KEY_ASSIGN_MODE,
-    EXP_BY_VEL,
 
     OSC_LEVEL,
     UNI_DETUNE,

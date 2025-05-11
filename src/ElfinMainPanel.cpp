@@ -456,11 +456,11 @@ struct EGPanel : BasePanel
                                        ElfinControl::EG_D, ElfinControl::EG_S, ElfinControl::EG_R};
     EGPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "EG")
     {
-        attach<jcmp::VSlider>(p, EG_A);
+        attach(p, EG_A);
         addLabel(EG_A, "A");
-        attach<jcmp::VSlider>(p, EG_D);
+        attach(p, EG_D);
         addLabel(EG_D, "D");
-        attach<jcmp::VSlider>(p, EG_S);
+        attach(p, EG_S);
         addLabel(EG_S, "S");
 
         auto tb = attachDiscrete<jcmp::ToggleButton>(p, EG_ON_OFF);
@@ -484,9 +484,9 @@ struct EGPanel : BasePanel
     void resized() override
     {
         auto lo = getLayoutHList();
-        lo.add(controlLayoutComponent(EG_A, 25));
-        lo.add(controlLayoutComponent(EG_D, 25));
-        lo.add(controlLayoutComponent(EG_S, 25));
+        lo.add(controlLayoutComponent(EG_A));
+        lo.add(controlLayoutComponent(EG_D));
+        lo.add(controlLayoutComponent(EG_S));
 
         auto vl = jlo::VList().withWidth(50).withAutoGap(margin);
         vl.add(jlo::Component(*main.widgets[EG_ON_OFF]).withHeight(25));
@@ -567,8 +567,6 @@ struct LFOPanel : BasePanel
 
 struct ModPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::EXP_TO_CUTOFF, ElfinControl::EXP_TO_AMP_LEVEL,
-                                       ElfinControl::EXP_BY_VEL};
     ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Expression")
     {
         attach(p, EXP_TO_CUTOFF);
@@ -576,19 +574,13 @@ struct ModPanel : BasePanel
 
         attach(p, EXP_TO_AMP_LEVEL);
         addLabel(EXP_TO_AMP_LEVEL, rightArrow + "Amp");
-
-        auto tb = attachDiscrete<jcmp::ToggleButton>(p, EXP_BY_VEL);
-        tb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
-        tb->setLabel("Vel " + rightArrow + " Exp");
     }
     void resized() override
     {
         auto lo = getLayoutHList();
         lo.add(controlLayoutComponent(EXP_TO_CUTOFF));
         lo.add(controlLayoutComponent(EXP_TO_AMP_LEVEL));
-        lo.add(jlo::Component(*main.widgets[EXP_BY_VEL])
-                   .withHeight(widgetHeight)
-                   .withWidth(widgetHeight * 1.25));
+
         lo.doLayout();
     }
 };
@@ -777,8 +769,8 @@ void ElfinMainPanel::resized()
     lo.add(row1);
 
     auto row2 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
-    row2.add(jlo::Component(*egPanel).withWidth(427));
-    row2.add(jlo::Component(*modPanel).withWidth(218));
+    row2.add(jlo::Component(*egPanel).withWidth(510));
+    row2.add(jlo::Component(*modPanel).withWidth(140));
     lo.add(row2);
 
     auto row3 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);

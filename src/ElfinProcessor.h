@@ -149,6 +149,7 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
 
     std::unique_ptr<juce::PropertiesFile> properties;
 
+  public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElfinControllerAudioProcessor)
 };
 } // namespace baconpaul::elfin_controller
