@@ -24,10 +24,12 @@
 #include "sst/jucegui/components/MenuButton.h"
 #include "sst/jucegui/components/ToolTip.h"
 #include "sst/jucegui/components/GlyphButton.h"
+#include "sst/jucegui/components/JogUpDownButton.h"
 #include "sst/jucegui/data/Continuous.h"
 #include "sst/jucegui/style/JUCELookAndFeelAdapter.h"
 #include "ElfinProcessor.h"
 #include "ElfinAbout.h"
+#include "PresetManager.h"
 
 namespace baconpaul::elfin_controller
 {
@@ -49,6 +51,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
 
     std::unique_ptr<sst::jucegui::components::GlyphButton> mainMenu;
     void showMainMenu();
+    void showPresetsMenu();
 
     std::vector<std::unique_ptr<sst::jucegui::data::Continuous>> otherSources;
     std::vector<std::unique_ptr<sst::jucegui::data::Discrete>> otherDiscrete;
@@ -83,8 +86,11 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     int lastLogSize{0};
 
     std::unique_ptr<juce::FileChooser> fileChooser;
-    void savePatch(), loadPatch(), setupUserPath();
+    void savePatch(), loadPatch(), setupUserPath(), initPatch(), loadFromFile(const fs::path &p);
     fs::path userPath;
+    std::unique_ptr<PresetManager> presetManager;
+    std::unique_ptr<PresetDataBinding> presetDataBinding;
+    std::unique_ptr<sst::jucegui::components::JogUpDownButton> presetButton;
 
     std::unique_ptr<ElfinAbout> aboutScreen;
 

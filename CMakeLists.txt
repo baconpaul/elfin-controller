@@ -85,6 +85,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   src/ElfinProcessor.cpp
   src/ElfinMainPanel.cpp
   src/ElfinAbout.cpp
+  src/PresetManager.cpp
   src/configuration.cpp
 )
 
@@ -95,6 +96,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     sst-plugininfra
     sst-plugininfra::version_information
     sst-plugininfra::filesystem
+    sst-plugininfra::strnatcmp
 )
 
 clap_juce_extensions_plugin(TARGET ${PROJECT_NAME}

@@ -13,6 +13,7 @@
 
 #include "ElfinAbout.h"
 #include <sst/plugininfra/version_information.h>
+#include <fstream>
 
 namespace baconpaul::elfin_controller
 {

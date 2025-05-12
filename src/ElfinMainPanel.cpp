@@ -13,6 +13,8 @@
 
 #include "ElfinMainPanel.h"
 
+#include <fstream>
+
 #include "sst/plugininfra/paths.h"
 #include "sst/plugininfra/version_information.h"
 
@@ -35,7 +37,7 @@ namespace jcmp = sst::jucegui::components;
 namespace jlo = sst::jucegui::layouts;
 
 static constexpr int outerMargin{5}, margin{5}, interControlMargin{15};
-static constexpr int labelHeight{30}, subLabelHeight{20}, sectionHeight{104};
+static constexpr int labelHeight{25}, subLabelHeight{25}, sectionHeight{104};
 static constexpr int widgetHeight{53}, widgetLabelHeight{17};
 
 struct CustomKnob : jcmp::Knob
@@ -632,14 +634,50 @@ struct IdleTimer : juce::Timer
     void timerCallback() override { parent->onIdle(); }
 };
 
+namespace jstl = sst::jucegui::style;
+using sheet_t = jstl::StyleSheet;
+static constexpr sheet_t::Class PatchMenu("elfin-controller.patch-menu");
+
 ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowPanel(), processor(p)
 {
     sst::jucegui::style::StyleSheet::initializeStyleSheets([]() {});
 
     userPath = sst::plugininfra::paths::bestDocumentsFolderPathFor("ElfinController");
+    presetManager = std::make_unique<PresetManager>(userPath);
+
+    presetDataBinding = std::make_unique<PresetDataBinding>(*presetManager);
+    presetDataBinding->onLoad =
+        [w = juce::Component::SafePointer(this)](int style, const fs::path &p)
+    {
+        if (!w)
+            return;
+
+        switch (style)
+        {
+        case 0:
+            w->initPatch();
+            break;
+        case 1:
+            ELFLOG("No factory patches yet");
+            break;
+        case 2:
+            w->loadFromFile(p);
+            break;
+        }
+        w->repaint();
+    };
+
+    presetButton = std::make_unique<jcmp::JogUpDownButton>();
+    presetButton->setCustomClass(PatchMenu);
+    presetButton->setSource(presetDataBinding.get());
+    presetButton->onPopupMenu = [this]() { showPresetsMenu(); };
+    addAndMakeVisible(*presetButton);
+
+    sheet_t::addClass(PatchMenu).withBaseClass(jcmp::JogUpDownButton::Styles::styleClass);
 
     setStyle(sst::jucegui::style::StyleSheet::getBuiltInStyleSheet(
         sst::jucegui::style::StyleSheet::DARK));
+
     setupStyle();
 
     lnf = std::make_unique<sst::jucegui::style::LookAndFeelManager>(this);
@@ -674,14 +712,14 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
     addAndMakeVisible(*settingsPanel);
 
     titleLabel = std::make_unique<jcmp::Label>();
-    titleLabel->setText("Elfin-04 Polysynth Controller");
-    titleLabel->setFontHeightOverride(28);
+    titleLabel->setText("Elfin Synth Controller");
+    titleLabel->setFontHeightOverride(22);
     addAndMakeVisible(*titleLabel);
 
-    hideawayLabel = std::make_unique<jcmp::Label>();
-    hideawayLabel->setText("Hideaway Studios");
-    hideawayLabel->setFontHeightOverride(15);
-    addAndMakeVisible(*hideawayLabel);
+    // hideawayLabel = std::make_unique<jcmp::Label>();
+    // hideawayLabel->setText("Hideaway Studios");
+    // hideawayLabel->setFontHeightOverride(15);
+    // addAndMakeVisible(*hideawayLabel);
 
     aboutScreen = std::make_unique<ElfinAbout>();
     addChildComponent(*aboutScreen);
@@ -692,6 +730,11 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
     // Debug check
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
     {
+        // This is in a custom split widget
+        if (i == OSC12_TYPE)
+        {
+            continue;
+        }
         if (widgets.find((ElfinControl)i) == widgets.end())
         {
             ELFLOG("Undisplayed control : (ElfinControl)" << i);
@@ -737,11 +780,7 @@ void ElfinMainPanel::showMainMenu()
               {
                   if (!w)
                       return;
-                  for (auto p : w->processor.params)
-                  {
-                      auto f = p->getFloatForCC(p->desc.midiCCDefault);
-                      p->setValueNotifyingHost(f);
-                  }
+                  w->initPatch();
               });
     p.addSeparator();
     p.addItem("About",
@@ -767,9 +806,14 @@ void ElfinMainPanel::resized()
 
     auto l1 = b.withHeight(labelHeight);
     titleLabel->setBounds(l1.reduced(labelHeight + subLabelHeight + margin, 0));
-    hideawayLabel->setBounds(l1.translated(0, labelHeight)
+    /*hideawayLabel->setBounds(l1.translated(0, labelHeight)
                                  .withHeight(subLabelHeight)
-                                 .reduced(labelHeight + subLabelHeight + margin, 0));
+                                 .reduced(labelHeight + subLabelHeight + margin, 0));*/
+
+    presetButton->setBounds(l1.translated(0, labelHeight)
+                                .withHeight(subLabelHeight)
+                                .reduced(labelHeight + subLabelHeight + margin + 100, 0));
+
     mainMenu->setBounds(
         l1.withHeight(labelHeight + subLabelHeight).withWidth(labelHeight + subLabelHeight));
 
@@ -856,8 +900,15 @@ void ElfinMainPanel::savePatch()
                                      return;
                                  }
                                  auto jf = result[0];
-                                 jf.create();
-                                 jf.appendText(w->processor.toXML());
+                                 if (jf.create() == juce::Result::ok())
+                                 {
+                                     jf.appendText(w->processor.toXML());
+                                     w->presetManager->rescanUserPresets();
+                                 }
+                                 else
+                                 {
+                                     ELFLOG("Error saving");
+                                 }
                              });
 }
 
@@ -946,10 +997,14 @@ void ElfinMainPanel::filesDropped(const juce::StringArray &files, int x, int y)
 
 void ElfinMainPanel::setupStyle()
 {
-    return;
-
     const auto &st = style();
     namespace jbs = jcmp::base_styles;
+
+    st->setFont(
+        PatchMenu, jcmp::MenuButton::Styles::labelfont,
+        st->getFont(jcmp::MenuButton::Styles::styleClass, jcmp::MenuButton::Styles::labelfont)
+            .withHeight(18));
+    return;
 
     st->setColour(jbs::ValueBearing::styleClass, jbs::ValueBearing::value,
                   juce::Colour(0xEE, 0xEE, 0x33));
@@ -1027,6 +1082,90 @@ void CustomKnob::paint(juce::Graphics &g)
     g.setColour(juce::Colour(0xE0, 0xE0, 0xA0));
     g.fillRect(hanRect);
     g.restoreState();
+}
+
+void ElfinMainPanel::initPatch()
+{
+    for (auto p : processor.params)
+    {
+        auto f = p->getFloatForCC(p->desc.midiCCDefault);
+        p->setValueNotifyingHost(f);
+    }
+}
+
+void ElfinMainPanel::loadFromFile(const fs::path &p)
+{
+    std::ifstream file(p, std::ios::in | std::ios::binary);
+    if (!file.is_open())
+    {
+        ELFLOG("ERROR");
+        return;
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    processor.fromXML(buffer.str());
+}
+
+void ElfinMainPanel::showPresetsMenu()
+{
+    auto m = juce::PopupMenu();
+    m.addSectionHeader("Presets");
+    m.addSeparator();
+
+    m.addItem("Save Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->savePatch();
+              });
+    m.addItem("Load Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->loadPatch();
+              });
+    m.addSeparator();
+    m.addItem("Init",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->presetDataBinding->setValueFromGUI(0);
+              });
+
+    for (auto &[k, v] : presetManager->userPatchTree)
+    {
+        auto mk = [w = juce::Component::SafePointer(this)](const int &c)
+        {
+            return [q = w, idx = c]()
+            {
+                if (!q)
+                    return;
+                q->presetDataBinding->setValueFromGUI(idx);
+                q->repaint();
+            };
+        };
+        if (k.empty())
+        {
+            for (auto &c : v)
+            {
+                m.addItem(c.first.u8string(), mk(c.second));
+            }
+        }
+        else
+        {
+            auto sub = juce::PopupMenu();
+            for (auto &c : v)
+            {
+                sub.addItem(c.first.filename().u8string(), mk(c.second));
+            }
+            m.addSubMenu(k.u8string(), sub);
+        }
+    }
+
+    m.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this));
 }
 
 } // namespace baconpaul::elfin_controller
