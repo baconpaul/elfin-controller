@@ -31,7 +31,8 @@ void PresetManager::recurseUserPresetFrom(const fs::path &p)
             {
                 recurseUserPresetFrom(elp);
             }
-            else if (fs::is_regular_file(elp) && elp.extension() == ".elfin")
+            else if (fs::is_regular_file(elp) &&
+                     (elp.extension() == ".elfin" || elp.extension() == ".elfsyx"))
             {
                 auto pushP = elp.lexically_relative(userPatchesPath);
                 userPatches.push_back(pushP);

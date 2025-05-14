@@ -16,6 +16,8 @@
 
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "configuration.h"
+#include <vector>
+#include <map>
 
 namespace baconpaul::elfin_controller
 {
@@ -140,12 +142,15 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     };
     typedef ElfinParam float_param_t;
     std::array<float_param_t *, nElfinParams> params{};
+    std::map<int, float_param_t *> paramsByCC;
 
     juce::AudioParameterBool *bypassParam{nullptr};
     juce::AudioProcessorParameter *getBypassParameter() const override { return bypassParam; }
 
     std::string toXML() const;
     bool fromXML(const std::string &s);
+    bool fromSYX(const std::vector<uint8_t> &s);
+    void randomizePatch();
 
     std::unique_ptr<juce::PropertiesFile> properties;
 

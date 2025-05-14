@@ -34,6 +34,7 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
         auto def = float_param_t::getFloatForCC(cc.midiCCDefault);
         params[id] = new float_param_t(id, cc.streaming_name, cc.name, def);
         params[id]->addListener(this);
+        paramsByCC[cc.midiCC] = params[id];
 
         addParameter(params[id]);
     }
@@ -185,6 +186,38 @@ bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
         ELFLOG(doc.getLastParseError());
     }
     return true;
+}
+
+bool ElfinControllerAudioProcessor::fromSYX(const std::vector<uint8_t> &d)
+{
+    for (auto i = 0; i < d.size(); i += 3)
+    {
+        if (d[i] != 0xb0)
+        {
+            ELFLOG("Non-control-byte at " << i);
+            return false;
+        }
+        int cc = d[i + 1];
+        int va = d[i + 2];
+        auto pit = paramsByCC.find(cc);
+        if (pit != paramsByCC.end())
+        {
+            pit->second->setValueNotifyingHost(pit->second->getFloatForCC(va));
+        }
+        else
+        {
+            ELFLOG("Unable to map param " << cc << " val=" << va);
+        }
+    }
+    return true;
+}
+
+void ElfinControllerAudioProcessor::randomizePatch()
+{
+    for (auto p : params)
+    {
+        p->setValueNotifyingHost(p->getFloatForCC(rand() % 128));
+    }
 }
 
 } // namespace baconpaul::elfin_controller

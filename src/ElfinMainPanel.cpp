@@ -452,11 +452,22 @@ struct OscPanel : BasePanel
     {
         auto lo = getLayoutHList();
         lo.add(labeledItem(*o1t, *o1lab));
+        lo.add(controlLayoutComponent(OSC12_MIX));
         lo.add(labeledItem(*o2t, *o2lab));
 
-        layoutInto(lo, contents);
+        int n = 66;
+        lo.addGap(n);
 
-        lo.doLayout();
+        lo.add(controlLayoutComponent(OSC2_COARSE));
+        lo.add(controlLayoutComponent(OSC2_FINE));
+        lo.add(controlLayoutComponent(OSC_LEVEL));
+
+        lo.addGap(n);
+        lo.add(controlLayoutComponent(SUB_LEVEL));
+        lo.add(controlLayoutComponent(SUB_TYPE));
+
+        auto bx = lo.doLayout();
+        ELFLOG(bx.toString() << " is osc");
     }
 };
 
@@ -498,10 +509,11 @@ struct EGPanel : BasePanel
         lo.add(controlLayoutComponent(EG_D));
         lo.add(controlLayoutComponent(EG_S));
 
-        auto vl = jlo::VList().withWidth(50).withAutoGap(margin);
+        auto vl = jlo::VList().withWidth(60).withAutoGap(margin);
         vl.add(jlo::Component(*main.widgets[EG_ON_OFF]).withHeight(25));
         vl.add(jlo::Component(*main.widgets[EG_R]).withHeight(25));
         lo.add(vl);
+        lo.addGap(20);
 
         lo.add(controlLayoutComponent(EG_TO_CUTOFF));
         lo.add(controlLayoutComponent(EG_TO_LFORATE));
@@ -597,11 +609,10 @@ struct ModPanel : BasePanel
 
 struct SettingsPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::POLY_UNI_MODE,  ElfinControl::PBEND_RANGE,
-                                       ElfinControl::PORTA,          ElfinControl::UNI_DETUNE,
-                                       ElfinControl::LEGATO,         ElfinControl::KEY_ASSIGN_MODE,
-
-                                       ElfinControl::DAMP_AND_ATTACK};
+    std::vector<ElfinControl> contents{ElfinControl::POLY_UNI_MODE,  ElfinControl::UNI_DETUNE,
+                                       ElfinControl::PORTA,          ElfinControl::LEGATO,
+                                       ElfinControl::PBEND_RANGE,    ElfinControl::DAMP_AND_ATTACK,
+                                       ElfinControl::KEY_ASSIGN_MODE};
     SettingsPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p)
         : BasePanel(m, "Voice Manager")
     {
@@ -610,6 +621,8 @@ struct SettingsPanel : BasePanel
     void resized() override
     {
         auto lo = getLayoutHList();
+        lo.addGap(15);
+        int n = 20;
         for (auto c : contents)
         {
             if (c != KEY_ASSIGN_MODE)
@@ -622,6 +635,12 @@ struct SettingsPanel : BasePanel
                            .withWidth(widgetHeight * 1.5)
                            .withHeight(widgetHeight + widgetLabelHeight));
             }
+            if (c == UNI_DETUNE)
+                lo.addGap(widgetHeight + 2 * margin);
+            if (c == PBEND_RANGE)
+                lo.addGap(widgetHeight);
+            if (c == DAMP_AND_ATTACK)
+                lo.addGap(widgetHeight - 20);
         }
         lo.doLayout();
     }
@@ -766,6 +785,12 @@ void ElfinMainPanel::showMainMenu()
                   if (w)
                       w->loadPatch();
               });
+    p.addItem("Randomize Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (w)
+                      w->processor.randomizePatch();
+              });
     p.addSeparator();
     p.addItem("Resend Patch to MIDI",
               [w = juce::Component::SafePointer(this)]()
@@ -824,23 +849,25 @@ void ElfinMainPanel::resized()
                   .withWidth(listArea.getWidth())
                   .withAutoGap(margin);
 
+    auto rwid = 472 + 203 + margin;
+
     auto row1 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
-    row1.add(jlo::Component(*oscPanel).withWidth(547));
-    row1.add(jlo::Component(*filterPanel).withWidth(203));
+    row1.add(jlo::Component(*oscPanel).withWidth(rwid));
 
     lo.add(row1);
 
     auto row2 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
-    row2.add(jlo::Component(*egPanel).withWidth(510));
-    row2.add(jlo::Component(*modPanel).withWidth(140));
+    row2.add(jlo::Component(*egPanel).withWidth(540));
+    row2.add(jlo::Component(*modPanel).withWidth(rwid - 540 - margin));
     lo.add(row2);
 
     auto row3 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
     row3.add(jlo::Component(*lfoPanel).withWidth(472));
+    row3.add(jlo::Component(*filterPanel).withWidth(rwid - 472 - margin));
     lo.add(row3);
 
     auto row4 = jlo::HList().withAutoGap(margin).withHeight(sectionHeight);
-    row4.add(jlo::Component(*settingsPanel).withWidth(550));
+    row4.add(jlo::Component(*settingsPanel).withWidth(rwid));
     lo.add(row4);
     lo.doLayout();
 }
@@ -865,21 +892,32 @@ void ElfinMainPanel::loadPatch()
     setupUserPath();
     fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(userPath.u8string()),
                                                       "*.elfin");
-    fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
-                                 juce::FileBrowserComponent::openMode,
-                             [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
-                             {
-                                 if (!w)
-                                     return;
-                                 auto result = c.getResults();
-                                 if (result.isEmpty() || result.size() > 1)
-                                 {
-                                     return;
-                                 }
-                                 auto jf = result[0];
-                                 auto s = jf.loadFileAsString().toStdString();
-                                 w->processor.fromXML(s);
-                             });
+    fileChooser->launchAsync(
+        juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::openMode,
+        [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
+        {
+            if (!w)
+                return;
+            auto result = c.getResults();
+            if (result.isEmpty() || result.size() > 1)
+            {
+                return;
+            }
+            auto jf = result[0];
+            if (jf.getFileExtension() == ".elfin")
+            {
+                auto s = jf.loadFileAsString().toStdString();
+                w->processor.fromXML(s);
+            }
+            else if (jf.getFileExtension() == ".elfsyx")
+            {
+                juce::MemoryBlock mb;
+                jf.loadFileAsData(mb);
+                std::vector<uint8_t> data((uint8_t *)mb.getData(),
+                                          (uint8_t *)mb.getData() + mb.getSize());
+                w->processor.fromSYX(data);
+            }
+        });
 }
 
 void ElfinMainPanel::savePatch()
@@ -981,6 +1019,8 @@ bool ElfinMainPanel::isInterestedInFileDrag(const juce::StringArray &files)
         return false;
     if (files[0].endsWith(".elfin"))
         return true;
+    if (files[0].endsWith(".elfsyx"))
+        return true;
     return false;
 }
 void ElfinMainPanel::filesDropped(const juce::StringArray &files, int x, int y)
@@ -990,8 +1030,19 @@ void ElfinMainPanel::filesDropped(const juce::StringArray &files, int x, int y)
     for (auto &f : files)
     {
         auto jf = juce::File(f);
-        auto s = jf.loadFileAsString().toStdString();
-        processor.fromXML(s);
+        if (jf.getFileExtension() == ".elfin")
+        {
+            auto s = jf.loadFileAsString().toStdString();
+            processor.fromXML(s);
+        }
+        else if (jf.getFileExtension() == ".elfsyx")
+        {
+            juce::MemoryBlock mb;
+            jf.loadFileAsData(mb);
+            std::vector<uint8_t> data((uint8_t *)mb.getData(),
+                                      (uint8_t *)mb.getData() + mb.getSize());
+            processor.fromSYX(data);
+        }
     }
 }
 
@@ -1004,12 +1055,13 @@ void ElfinMainPanel::setupStyle()
         PatchMenu, jcmp::MenuButton::Styles::labelfont,
         st->getFont(jcmp::MenuButton::Styles::styleClass, jcmp::MenuButton::Styles::labelfont)
             .withHeight(18));
-    return;
+    st->setColour(PatchMenu, jcmp::MenuButton::Styles::fill, juce::Colour(0x30, 0x30, 0x30));
 
-    st->setColour(jbs::ValueBearing::styleClass, jbs::ValueBearing::value,
-                  juce::Colour(0xEE, 0xEE, 0x33));
-    st->setColour(jbs::ValueBearing::styleClass, jbs::ValueBearing::value_hover,
-                  juce::Colour(0xFF, 0xFF, 0x55));
+    st->setColour(jbs::ValueGutter::styleClass, jbs::ValueGutter::gutter,
+                  juce::Colour(0x30, 0x30, 0x30));
+    st->setColour(jbs::ValueGutter::styleClass, jbs::ValueGutter::gutter_hover,
+                  juce::Colour(0x40, 0x40, 0x40));
+
     st->setColour(jbs::Outlined::styleClass, jbs::Outlined::brightoutline,
                   juce::Colour(0xEE, 0xEE, 0xEE));
     st->setColour(jbs::BaseLabel::styleClass, jbs::BaseLabel::labelcolor,
@@ -1017,11 +1069,12 @@ void ElfinMainPanel::setupStyle()
     st->setColour(jcmp::NamedPanel::Styles::styleClass, jcmp::NamedPanel::Styles::labelrule,
                   juce::Colour(0xEE, 0xEE, 0xEE));
     st->setColour(jcmp::NamedPanel::Styles::styleClass, jcmp::NamedPanel::Styles::background,
-                  juce::Colour(0x20, 0x20, 0x20));
+                  juce::Colour(0x15, 0x15, 0x15));
+
     st->setColour(jcmp::WindowPanel::Styles::styleClass, jcmp::WindowPanel::Styles::bgstart,
-                  juce::Colour(0x05, 0x05, 0x05));
+                  juce::Colour(0x00, 0x0, 0x0));
     st->setColour(jcmp::WindowPanel::Styles::styleClass, jcmp::WindowPanel::Styles::bgend,
-                  juce::Colour(0x0, 0x0, 0x0));
+                  juce::Colour(0x20, 0x20, 0x20));
 }
 
 void CustomKnob::paint(juce::Graphics &g)
@@ -1103,7 +1156,17 @@ void ElfinMainPanel::loadFromFile(const fs::path &p)
     }
     std::stringstream buffer;
     buffer << file.rdbuf();
-    processor.fromXML(buffer.str());
+
+    if (p.extension() == ".elfin")
+    {
+        processor.fromXML(buffer.str());
+    }
+    if (p.extension() == ".elfsyx")
+    {
+        auto s = buffer.str();
+        std::vector<uint8_t> data(s.begin(), s.end());
+        processor.fromSYX(data);
+    }
 }
 
 void ElfinMainPanel::showPresetsMenu()
@@ -1125,6 +1188,13 @@ void ElfinMainPanel::showPresetsMenu()
                   if (!w)
                       return;
                   w->loadPatch();
+              });
+    m.addItem("Randomize Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->processor.randomizePatch();
               });
     m.addSeparator();
     m.addItem("Init",

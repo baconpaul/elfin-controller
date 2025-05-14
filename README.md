@@ -13,7 +13,6 @@ Code is all MIT. But deps are GPL3 so final product is GPL3. You know the drill.
 ### Engine / Model ToDos ===
 
 - baked in svgs
-- random patch
 - send program changes? or at least get those as presets?
 
 ### UI ToDos
