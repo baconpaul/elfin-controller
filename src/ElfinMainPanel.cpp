@@ -950,32 +950,19 @@ void ElfinMainPanel::loadPatch()
     setupUserPath();
     fileChooser = std::make_unique<juce::FileChooser>("Load Patch", juce::File(userPath.u8string()),
                                                       "*.elfin");
-    fileChooser->launchAsync(
-        juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::openMode,
-        [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
-        {
-            if (!w)
-                return;
-            auto result = c.getResults();
-            if (result.isEmpty() || result.size() > 1)
-            {
-                return;
-            }
-            auto jf = result[0];
-            if (jf.getFileExtension() == ".elfin")
-            {
-                auto s = jf.loadFileAsString().toStdString();
-                w->processor.fromXML(s);
-            }
-            else if (jf.getFileExtension() == ".elfsyx")
-            {
-                juce::MemoryBlock mb;
-                jf.loadFileAsData(mb);
-                std::vector<uint8_t> data((uint8_t *)mb.getData(),
-                                          (uint8_t *)mb.getData() + mb.getSize());
-                w->processor.fromSYX(data);
-            }
-        });
+    fileChooser->launchAsync(juce::FileBrowserComponent::canSelectFiles |
+                                 juce::FileBrowserComponent::openMode,
+                             [w = juce::Component::SafePointer(this)](const juce::FileChooser &c)
+                             {
+                                 if (!w)
+                                     return;
+                                 auto result = c.getResults();
+                                 if (result.isEmpty() || result.size() > 1)
+                                 {
+                                     return;
+                                 }
+                                 w->loadFromFile(result[0]);
+                             });
 }
 
 void ElfinMainPanel::savePatch()
@@ -1077,7 +1064,7 @@ bool ElfinMainPanel::isInterestedInFileDrag(const juce::StringArray &files)
         return false;
     if (files[0].endsWith(".elfin"))
         return true;
-    if (files[0].endsWith(".elfsyx"))
+    if (files[0].endsWith(".syx"))
         return true;
     return false;
 }
@@ -1088,19 +1075,7 @@ void ElfinMainPanel::filesDropped(const juce::StringArray &files, int x, int y)
     for (auto &f : files)
     {
         auto jf = juce::File(f);
-        if (jf.getFileExtension() == ".elfin")
-        {
-            auto s = jf.loadFileAsString().toStdString();
-            processor.fromXML(s);
-        }
-        else if (jf.getFileExtension() == ".elfsyx")
-        {
-            juce::MemoryBlock mb;
-            jf.loadFileAsData(mb);
-            std::vector<uint8_t> data((uint8_t *)mb.getData(),
-                                      (uint8_t *)mb.getData() + mb.getSize());
-            processor.fromSYX(data);
-        }
+        loadFromFile(jf);
     }
 }
 
@@ -1204,23 +1179,63 @@ void ElfinMainPanel::initPatch()
     }
 }
 
+void ElfinMainPanel::loadFromFile(const juce::File &jf)
+{
+    if (jf.getFileExtension() == ".elfin")
+    {
+        auto s = jf.loadFileAsString().toStdString();
+        processor.fromXML(s);
+    }
+    else if (jf.getFileExtension() == ".syx")
+    {
+        if (jf.getSize() != 108)
+        {
+            ELFLOG("Sysex file with wrong size");
+            return;
+        }
+        juce::MemoryBlock mb;
+        jf.loadFileAsData(mb);
+        std::vector<uint8_t> data((uint8_t *)mb.getData(), (uint8_t *)mb.getData() + mb.getSize());
+        processor.fromSYX(data);
+    }
+}
 void ElfinMainPanel::loadFromFile(const fs::path &p)
 {
-    std::ifstream file(p, std::ios::in | std::ios::binary);
-    if (!file.is_open())
-    {
-        ELFLOG("ERROR");
-        return;
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
 
     if (p.extension() == ".elfin")
     {
+        std::ifstream file(p, std::ios::in | std::ios::binary);
+        if (!file.is_open())
+        {
+            ELFLOG("ERROR");
+            return;
+        }
+        std::stringstream buffer;
+        buffer << file.rdbuf();
         processor.fromXML(buffer.str());
     }
-    if (p.extension() == ".elfsyx")
+    if (p.extension() == ".syx")
     {
+        try
+        {
+            auto sz = fs::file_size(p);
+            ELFLOG("Size is " << sz);
+            if (sz != 108)
+                return;
+        }
+        catch (fs::filesystem_error &e)
+        {
+            ELFLOG("Cant stat syx file");
+            return;
+        }
+        std::ifstream file(p, std::ios::in | std::ios::binary);
+        if (!file.is_open())
+        {
+            ELFLOG("ERROR");
+            return;
+        }
+        std::stringstream buffer;
+        buffer << file.rdbuf();
         auto s = buffer.str();
         std::vector<uint8_t> data(s.begin(), s.end());
         processor.fromSYX(data);

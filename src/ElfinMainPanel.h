@@ -86,7 +86,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     int lastLogSize{0};
 
     std::unique_ptr<juce::FileChooser> fileChooser;
-    void savePatch(), loadPatch(), setupUserPath(), initPatch(), loadFromFile(const fs::path &p);
+    void savePatch(), loadPatch(), setupUserPath(), initPatch();
+    void loadFromFile(const fs::path &p), loadFromFile(const juce::File &);
     fs::path userPath;
     std::unique_ptr<PresetManager> presetManager;
     std::unique_ptr<PresetDataBinding> presetDataBinding;

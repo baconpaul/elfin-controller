@@ -190,6 +190,11 @@ bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
 
 bool ElfinControllerAudioProcessor::fromSYX(const std::vector<uint8_t> &d)
 {
+    if (d.size() != 108)
+    {
+        ELFLOG("Mis-sized sysex data");
+        return false;
+    }
     for (auto i = 0; i < d.size(); i += 3)
     {
         if (d[i] != 0xb0)
