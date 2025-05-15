@@ -12,7 +12,6 @@ Code is all MIT. But deps are GPL3 so final product is GPL3. You know the drill.
 
 ### Engine / Model ToDos ===
 
-- baked in svgs
 - send program changes? or at least get those as presets?
 
 ### UI ToDos
@@ -24,7 +23,7 @@ Code is all MIT. But deps are GPL3 so final product is GPL3. You know the drill.
 
 - Damp/Attack needs a custom control since it is 0-63 off and then 64-127 slow to fast
 - some basic code comments would be nice
-- When done remove control lists
+- Break up ElfinMainPanel a bit perhaps?
 - Error Handling
 - TypeIns
 

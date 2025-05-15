@@ -30,6 +30,12 @@ list(APPEND ELFCO_FORMATS Standalone)
 
 set(ELFCO_PRODUCT_NAME "Elfin Controller")
 
+
+include(cmake/CmakeRC.cmake)
+file(GLOB_RECURSE CONTENT_GLOB  "resources/content/**")
+cmrc_add_resource_library(${PROJECT_NAME}-content NAMESPACE elfin_content ${CONTENT_GLOB})
+
+
 juce_add_plugin(${PROJECT_NAME}
   PRODUCT_NAME ${ELFCO_PRODUCT_NAME}
   COMPANY_NAME "Hideaway Studio"
@@ -97,6 +103,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     sst-plugininfra::version_information
     sst-plugininfra::filesystem
     sst-plugininfra::strnatcmp
+    ${PROJECT_NAME}-content
 )
 
 clap_juce_extensions_plugin(TARGET ${PROJECT_NAME}

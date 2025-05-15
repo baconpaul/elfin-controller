@@ -30,6 +30,10 @@
 // This is super gross
 #include "../libs/sst/sst-jucegui/src/sst/jucegui/components/KnobPainter.hxx"
 
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(elfin_content);
+
 namespace baconpaul::elfin_controller
 {
 
@@ -39,6 +43,62 @@ namespace jlo = sst::jucegui::layouts;
 static constexpr int outerMargin{5}, margin{5}, interControlMargin{15};
 static constexpr int labelHeight{25}, subLabelHeight{25}, sectionHeight{104};
 static constexpr int widgetHeight{53}, widgetLabelHeight{17};
+
+struct LogoBase : juce::Component
+{
+    std::unique_ptr<juce::Drawable> logoSVG;
+
+    LogoBase(const std::string &ln)
+    {
+        try
+        {
+            auto fs = cmrc::elfin_content::get_filesystem();
+            auto f = fs.open("resources/content/logos/" + ln);
+            std::string s(f.begin(), f.size());
+            auto xml = juce::XmlDocument::parse(s);
+            logoSVG = juce::Drawable::createFromSVG(*xml);
+        }
+        catch (const std::exception &e)
+        {
+            ELFLOG(e.what());
+        }
+    }
+};
+struct ElfinLogo : LogoBase
+{
+    ElfinLogo() : LogoBase("The Elfin Logo.svg") { assert(logoSVG); }
+
+    void paint(juce::Graphics &g) override
+    {
+        if (!logoSVG)
+            return;
+
+        auto bd = logoSVG->getBounds();
+        auto t = juce::AffineTransform();
+        t = t.translated(0, -bd.getY());
+        t = t.scaled(2.0, 2.0);
+        t = t.translated((getWidth() - 2 * bd.getWidth()) / 2 - 10, 0);
+        logoSVG->draw(g, 1.0, t);
+    }
+};
+
+struct HideawayLogo : LogoBase
+{
+    HideawayLogo() : LogoBase("Hideaway logo.svg") { assert(logoSVG); }
+
+    void paint(juce::Graphics &g) override
+    {
+        if (!logoSVG)
+            return;
+        auto scale = 0.45;
+        auto bd = logoSVG->getBounds();
+        auto t = juce::AffineTransform();
+        t = t.translated(0, -bd.getY());
+        t = t.scaled(scale, scale);
+        t = t.translated((getWidth() - scale * bd.getWidth()) / 2, 0);
+        logoSVG->draw(g, 1.0, t);
+    }
+};
 
 struct CustomKnob : jcmp::Knob
 {
@@ -467,7 +527,6 @@ struct OscPanel : BasePanel
         lo.add(controlLayoutComponent(SUB_TYPE));
 
         auto bx = lo.doLayout();
-        ELFLOG(bx.toString() << " is osc");
     }
 };
 
@@ -730,10 +789,11 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
     settingsPanel = std::make_unique<SettingsPanel>(*this, p);
     addAndMakeVisible(*settingsPanel);
 
-    titleLabel = std::make_unique<jcmp::Label>();
-    titleLabel->setText("Elfin Synth Controller");
-    titleLabel->setFontHeightOverride(22);
-    addAndMakeVisible(*titleLabel);
+    elfinLogo = std::make_unique<ElfinLogo>();
+    addAndMakeVisible(*elfinLogo);
+
+    hideawayLogo = std::make_unique<HideawayLogo>();
+    addAndMakeVisible(*hideawayLogo);
 
     // hideawayLabel = std::make_unique<jcmp::Label>();
     // hideawayLabel->setText("Hideaway Studios");
@@ -830,10 +890,8 @@ void ElfinMainPanel::resized()
     auto b = getLocalBounds().reduced(outerMargin);
 
     auto l1 = b.withHeight(labelHeight);
-    titleLabel->setBounds(l1.reduced(labelHeight + subLabelHeight + margin, 0));
-    /*hideawayLabel->setBounds(l1.translated(0, labelHeight)
-                                 .withHeight(subLabelHeight)
-                                 .reduced(labelHeight + subLabelHeight + margin, 0));*/
+    elfinLogo->setBounds(l1.reduced(labelHeight + subLabelHeight + margin, 0));
+    hideawayLogo->setBounds(b.withTrimmedTop(b.getHeight() - 20));
 
     presetButton->setBounds(l1.translated(0, labelHeight)
                                 .withHeight(subLabelHeight)

@@ -72,7 +72,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     void updateToolTip(ElfinControllerAudioProcessor::float_param_t *);
     void hideToolTip();
 
-    std::unique_ptr<sst::jucegui::components::Label> titleLabel, hideawayLabel;
+    std::unique_ptr<juce::Component> elfinLogo, hideawayLogo;
 
     std::unique_ptr<sst::jucegui::style::LookAndFeelManager> lnf;
 
