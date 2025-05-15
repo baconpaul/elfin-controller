@@ -71,7 +71,7 @@ if (APPLE)
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMAND ${CMAKE_COMMAND} -E make_directory installer
-            COMMAND ${CMAKE_SOURCE_DIR}/libs/sst/sst-plugininfra/scripts/installer_mac/make_installer.sh "elfin-controller" ${ELFINCONT_PRODUCT_DIR} ${CMAKE_SOURCE_DIR}/resources/installer_mac ${CMAKE_BINARY_DIR}/installer "${ELFINCONT_DATE}-${GIT_COMMIT_HASH}"
+            COMMAND ${CMAKE_SOURCE_DIR}/libs/sst/sst-plugininfra/scripts/installer_mac/make_installer.sh "Elfin Controller" ${ELFINCONT_PRODUCT_DIR} ${CMAKE_SOURCE_DIR}/resources/installer_mac ${CMAKE_BINARY_DIR}/installer "${ELFINCONT_DATE}-${GIT_COMMIT_HASH}"
     )
 elseif (WIN32)
     message(STATUS "Configuring for win installer")
