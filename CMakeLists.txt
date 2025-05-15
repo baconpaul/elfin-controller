@@ -91,6 +91,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   src/ElfinProcessor.cpp
   src/ElfinMainPanel.cpp
   src/ElfinAbout.cpp
+  src/ElfinKnob.cpp
   src/PresetManager.cpp
   src/configuration.cpp
 )
