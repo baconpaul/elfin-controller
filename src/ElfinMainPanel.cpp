@@ -319,7 +319,7 @@ void ElfinMainPanel::savePatch()
                                  auto jf = result[0];
                                  if (jf.create() == juce::Result::ok())
                                  {
-                                     jf.appendText(w->processor.toXML());
+                                     jf.replaceWithText(w->processor.toXML());
                                      w->presetManager->rescanUserPresets();
                                  }
                                  else
