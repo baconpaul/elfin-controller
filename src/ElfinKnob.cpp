@@ -81,10 +81,8 @@ void ElfinKnob::paint(juce::Graphics &g)
                 .translated(-cx, -cy)
                 .rotated(continuous()->getValue01() * 2 * juce::MathConstants<float>::pi * 0.8)
                 .translated(cx, cy));
-        auto ci = juce::Colour(0x15, 0x15, 015);
-        auto gradedo = juce::ColourGradient::vertical(juce::Colour(0x5, 0x5, 0x8), knobarea.getY(),
-                                                      ci.brighter(0.2), knobarea.getBottom());
-        g.setGradientFill(gradedo);
+        auto ci = juce::Colour(0x22, 0x22, 0x22);
+        g.setColour(ci);
         g.fillPath(p);
         g.setColour(juce::Colours::black);
         g.strokePath(p, juce::PathStrokeType(1));
@@ -94,8 +92,8 @@ void ElfinKnob::paint(juce::Graphics &g)
     currRad += 3;
     {
         auto ci = juce::Colour(0x20, 0x20, 0x20);
-        auto gradedo = juce::ColourGradient::vertical(ci.brighter(0.2), knobarea.getY(),
-                                                      ci.darker(0.3), knobarea.getBottom());
+        auto gradedo = juce::ColourGradient::vertical(ci.brighter(0.3), knobarea.getY(),
+                                                      ci.darker(0.2), knobarea.getBottom());
 
         g.setGradientFill(gradedo);
         g.fillPath(circle(currRad));
