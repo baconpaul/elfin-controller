@@ -129,11 +129,6 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
     hideawayLogo = std::make_unique<HideawayLogo>();
     addAndMakeVisible(*hideawayLogo);
 
-    // hideawayLabel = std::make_unique<jcmp::Label>();
-    // hideawayLabel->setText("Hideaway Studios");
-    // hideawayLabel->setFontHeightOverride(15);
-    // addAndMakeVisible(*hideawayLabel);
-
     aboutScreen = std::make_unique<ElfinAbout>();
     addChildComponent(*aboutScreen);
 
@@ -225,7 +220,7 @@ void ElfinMainPanel::resized()
 
     auto l1 = b.withHeight(labelHeight);
     elfinLogo->setBounds(l1.reduced(labelHeight + subLabelHeight + margin, 0));
-    hideawayLogo->setBounds(b.withTrimmedTop(b.getHeight() - 20));
+    hideawayLogo->setBounds(b.withTrimmedTop(b.getHeight() - 18));
 
     presetButton->setBounds(l1.translated(0, labelHeight)
                                 .withHeight(subLabelHeight)
@@ -264,7 +259,21 @@ void ElfinMainPanel::resized()
     lo.doLayout();
 }
 
-void ElfinMainPanel::paint(juce::Graphics &g) { WindowPanel::paint(g); }
+void ElfinMainPanel::paint(juce::Graphics &g)
+{
+    WindowPanel::paint(g);
+    auto txt = sst::plugininfra::VersionInformation::git_implied_display_version;
+    auto txt2 = sst::plugininfra::VersionInformation::git_commit_hash;
+
+    g.setFont(style()
+                  ->getFont(jcmp::base_styles::BaseLabel::styleClass,
+                            jcmp::base_styles::BaseLabel::labelfont)
+                  .withHeight(10));
+    g.setColour(juce::Colour(0x90, 0x90, 0x90));
+    auto b = getLocalBounds().reduced(6, 4);
+    g.drawText(txt, b.withTrimmedBottom(12), juce::Justification::bottomRight);
+    g.drawText(txt2, b, juce::Justification::bottomRight);
+}
 
 void ElfinMainPanel::onIdle()
 {
