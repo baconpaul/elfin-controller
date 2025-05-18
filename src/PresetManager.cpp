@@ -13,9 +13,76 @@
 
 #include "PresetManager.h"
 #include "sst/plugininfra/strnatcmp.h"
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(elfin_content);
 
 namespace baconpaul::elfin_controller
 {
+void PresetManager::loadFactoryPresets()
+{
+    ELFLOG("Loading factory presets");
+    try
+    {
+        auto fs = cmrc::elfin_content::get_filesystem();
+        cmrc::directory_iterator dir = fs.iterate_directory(factoryPath);
+        for (const auto &q : dir)
+        {
+            std::vector<std::string> ents;
+
+            if (q.is_directory())
+            {
+                for (const auto &patch :
+                     fs.iterate_directory(std::string() + factoryPath + "/" + q.filename()))
+                {
+                    ents.push_back(patch.filename());
+                }
+
+                std::sort(ents.begin(), ents.end(),
+                          [](const auto &a, const auto &b)
+                          { return strnatcasecmp(a.c_str(), b.c_str()) < 0; });
+                factoryPatchNames[q.filename()] = ents;
+            }
+        }
+
+        factoryPatchVector.clear();
+        for (const auto &[c, st] : factoryPatchNames)
+        {
+            for (const auto &pn : st)
+            {
+                factoryPatchVector.emplace_back(c, pn);
+            }
+        }
+
+        int32_t pidx = (int32_t)(1);
+        for (auto &[path, pname] : factoryPatchVector)
+        {
+            factoryPatchTree[path].push_back({pname, pidx});
+            pidx++;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        ELFLOG(e.what());
+    }
+}
+
+std::string PresetManager::factoryXMLFor(int idx) const
+{
+    try
+    {
+        auto fs = cmrc::elfin_content::get_filesystem();
+        auto [path, name] = factoryPatchVector[idx];
+        auto f = fs.open(std::string() + factoryPath + "/" + path + "/" + name);
+        return std::string(f.begin(), f.end());
+    }
+    catch (const std::exception &e)
+    {
+        ELFLOG(e.what());
+    }
+    return "";
+}
+
 void PresetManager::recurseUserPresetFrom(const fs::path &p)
 {
     if (fs::is_directory(p))

@@ -59,7 +59,7 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
 
     presetDataBinding = std::make_unique<PresetDataBinding>(*presetManager);
     presetDataBinding->onLoad =
-        [w = juce::Component::SafePointer(this)](int style, const fs::path &p)
+        [w = juce::Component::SafePointer(this)](int style, int idx, const fs::path &p)
     {
         if (!w)
             return;
@@ -70,8 +70,14 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
             w->initPatch();
             break;
         case 1:
-            ELFLOG("No factory patches yet");
-            break;
+        {
+            const std::string s = w->presetManager->factoryXMLFor(idx);
+            if (!s.empty())
+            {
+                w->processor.fromXML(s);
+            }
+        }
+        break;
         case 2:
             w->loadFromFile(p);
             break;
@@ -180,6 +186,14 @@ void ElfinMainPanel::showMainMenu()
                   if (w)
                       w->processor.randomizePatch();
               });
+    p.addItem("Init Patch",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->initPatch();
+              });
+
     p.addSeparator();
     p.addItem("Resend Patch to MIDI",
               [w = juce::Component::SafePointer(this)]()
@@ -189,13 +203,14 @@ void ElfinMainPanel::showMainMenu()
                   for (auto p : w->processor.params)
                       p->invalid = true;
               });
-    p.addItem("Reset to Default",
+    p.addItem("Send All Notes Off",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
                       return;
-                  w->initPatch();
+                  w->processor.sendAllNotesOff = true;
               });
+
     p.addSeparator();
     p.addItem("About",
               [w = juce::Component::SafePointer(this)]()
@@ -553,27 +568,46 @@ void ElfinMainPanel::showPresetsMenu()
                       return;
                   w->processor.randomizePatch();
               });
-    m.addSeparator();
-    m.addItem("Init",
+    m.addItem("Init Patch",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
                       return;
                   w->presetDataBinding->setValueFromGUI(0);
               });
+    m.addColumnBreak();
+    m.addSectionHeader("Factory Presets");
+    m.addSeparator();
+
+    auto mk = [w = juce::Component::SafePointer(this)](const int &c)
+    {
+        return [q = w, idx = c]()
+        {
+            if (!q)
+                return;
+            q->presetDataBinding->setValueFromGUI(idx);
+            q->repaint();
+        };
+    };
+
+    for (auto &[k, v] : presetManager->factoryPatchTree)
+    {
+        auto sub = juce::PopupMenu();
+        for (auto &c : v)
+        {
+            sub.addItem(c.first, mk(c.second));
+        }
+        m.addSubMenu(k, sub);
+    }
+    if (!presetManager->userPatches.empty())
+    {
+        m.addColumnBreak();
+        m.addSectionHeader("User Presets");
+        m.addSeparator();
+    }
 
     for (auto &[k, v] : presetManager->userPatchTree)
     {
-        auto mk = [w = juce::Component::SafePointer(this)](const int &c)
-        {
-            return [q = w, idx = c]()
-            {
-                if (!q)
-                    return;
-                q->presetDataBinding->setValueFromGUI(idx);
-                q->repaint();
-            };
-        };
         if (k.empty())
         {
             for (auto &c : v)

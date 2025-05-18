@@ -112,9 +112,8 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     };
     LockFreeQueue<ResetTypeMsg> resetType;
 
-    int64_t sampleCount{0};
-
     std::atomic<bool> refreshUI{false}, rebuildUI{false};
+    std::atomic<bool> sendAllNotesOff{false};
 
     //==============================================================================
     struct ElfinParam : juce::AudioParameterFloat
@@ -143,6 +142,9 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     typedef ElfinParam float_param_t;
     std::array<float_param_t *, nElfinParams> params{};
     std::map<int, float_param_t *> paramsByCC;
+    int sampleGap{0};
+    static constexpr int maxMessagesPerSample{3};
+    std::atomic<int> midiGapMultiplier{2};
 
     juce::AudioParameterBool *bypassParam{nullptr};
     juce::AudioProcessorParameter *getBypassParameter() const override { return bypassParam; }

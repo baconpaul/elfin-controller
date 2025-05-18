@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<elfin version="1">
+  <param id="osc12_type" cc="24" ccval="0"/>
+  <param id="osc12_mix" cc="25" ccval="84"/>
+  <param id="osc2_coarse" cc="20" ccval="52"/>
+  <param id="osc2_fine" cc="21" ccval="76"/>
+  <param id="sub_type" cc="29" ccval="127"/>
+  <param id="sub_level" cc="26" ccval="127"/>
+  <param id="eg_to_pitch" cc="104" ccval="55"/>
+  <param id="eg_to_pitch_target" cc="105" ccval="127"/>
+  <param id="filt_cutoff" cc="16" ccval="40"/>
+  <param id="filt_resonance" cc="17" ccval="67"/>
+  <param id="eg_to_cutoff" cc="18" ccval="67"/>
+  <param id="eg_onoff" cc="31" ccval="94"/>
+  <param id="eg_a" cc="23" ccval="6"/>
+  <param id="eg_d" cc="19" ccval="46"/>
+  <param id="eg_s" cc="27" ccval="6"/>
+  <param id="eg_r" cc="28" ccval="127"/>
+  <param id="lfo_type" cc="14" ccval="88"/>
+  <param id="lfo_rate" cc="80" ccval="82"/>
+  <param id="lfo_to_pitch" cc="82" ccval="64"/>
+  <param id="lfo_to_cutoff" cc="83" ccval="65"/>
+  <param id="lfo_depth" cc="81" ccval="52"/>
+  <param id="eg_to_rate" cc="3" ccval="26"/>
+  <param id="lfo_to_pitch_tgt" cc="9" ccval="92"/>
+  <param id="lfo_fade_time" cc="15" ccval="0"/>
+  <param id="pbend_range" cc="85" ccval="2"/>
+  <param id="pitch_to_cut" cc="86" ccval="67"/>
+  <param id="exp_to_cut" cc="106" ccval="74"/>
+  <param id="exp_to_amp" cc="107" ccval="18"/>
+  <param id="portamento" cc="22" ccval="0"/>
+  <param id="legato" cc="30" ccval="47"/>
+  <param id="key_assign" cc="87" ccval="53"/>
+  <param id="osc_level" cc="108" ccval="109"/>
+  <param id="uni_detune" cc="109" ccval="15"/>
+  <param id="poly_uni" cc="110" ccval="127"/>
+  <param id="damp_and_attack" cc="111" ccval="0"/>
+</elfin>

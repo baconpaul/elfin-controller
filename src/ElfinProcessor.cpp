@@ -36,7 +36,18 @@ ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
         params[id]->addListener(this);
         paramsByCC[cc.midiCC] = params[id];
 
+        // In the standalone, force a send on startup
+        if (wrapperType == juce::AudioProcessor::WrapperType::wrapperType_Standalone)
+        {
+            params[id]->invalid = true;
+        }
+
         addParameter(params[id]);
+    }
+
+    if (wrapperType == juce::AudioProcessor::WrapperType::wrapperType_Standalone)
+    {
+        sendAllNotesOff = true;
     }
 }
 
@@ -57,6 +68,7 @@ double ElfinControllerAudioProcessor::getTailLengthSeconds() const { return 0.0;
 void ElfinControllerAudioProcessor::prepareToPlay(double sr, int samplesPerBlock)
 {
     isPlaying = true;
+    sampleGap = std::ceil(sr / 48000 * 4);
 }
 
 void ElfinControllerAudioProcessor::releaseResources() { isPlaying = false; }
@@ -64,35 +76,35 @@ void ElfinControllerAudioProcessor::releaseResources() { isPlaying = false; }
 void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                                  juce::MidiBuffer &midiMessages)
 {
+    int midiTimeForParams{0};
+    int numSamples = buffer.getNumSamples();
+
+    bool anoOn{true}, anoDone{false};
+    if (sendAllNotesOff.compare_exchange_strong(anoOn, anoDone))
+    {
+        midiTimeForParams = std::min(sampleGap, numSamples - 1);
+        midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 123, 0), 0);
+    }
+    int ct{0};
     for (auto &p : params)
     {
-        // FIXME atomic compare
-        if (p && p->invalid == true)
+        bool inOn{true}, onDone{false};
+        if (p && p->invalid.compare_exchange_strong(inOn, onDone))
         {
-            p->invalid = false;
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
-                                  0);
-            // ELFLOG(p->desc.name << " to " << p->getCC());
+                                  midiTimeForParams);
+
+            if (ct == maxMessagesPerSample)
+            {
+                ct = 0;
+                midiTimeForParams += midiGapMultiplier * sampleGap;
+            }
+            ct++;
+            if (midiTimeForParams >= numSamples)
+            {
+                break;
+            }
         }
-    }
-
-#if 0
-    if (sampleCount <= 0 && sampleCount + buffer.getNumSamples() > 0)
-    {
-        ELFLOG("Note On " << sampleCount);
-        midiMessages.addEvent(juce::MidiMessage::noteOn(1, 60, 0.8f), 1);
-    }
-    else if (sampleCount <= 24000 && sampleCount + buffer.getNumSamples() > 24000)
-    {
-        ELFLOG("Note Off " << sampleCount);
-        midiMessages.addEvent(juce::MidiMessage::noteOff(1, 60, 0.8f), 0);
-    }
-
-#endif
-    sampleCount += buffer.getNumSamples();
-    if (sampleCount > 96000)
-    {
-        sampleCount -= 96000 + buffer.getNumSamples();
     }
 }
 
@@ -147,6 +159,7 @@ std::string ElfinControllerAudioProcessor::toXML() const
 }
 bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
 {
+    sendAllNotesOff = true;
     auto doc = juce::XmlDocument(s);
     if (auto mainElement = doc.getDocumentElement())
     {
@@ -195,6 +208,7 @@ bool ElfinControllerAudioProcessor::fromSYX(const std::vector<uint8_t> &d)
         ELFLOG("Mis-sized sysex data");
         return false;
     }
+    sendAllNotesOff = true;
     for (auto i = 0; i < d.size(); i += 3)
     {
         if (d[i] != 0xb0)
