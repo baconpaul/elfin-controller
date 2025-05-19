@@ -57,16 +57,17 @@ void ElfinKnob::paint(juce::Graphics &g)
         auto cx = region.getCentreX();
         auto cy = region.getCentreY();
 
-        auto numSpikes = 12;
+        auto numSpikes = 13;
         auto dAng = 2.0 * juce::MathConstants<float>::pi / numSpikes;
         auto inRad = region.getWidth() / 2 - 1;
         auto outRad = region.getWidth() / 2 + 1;
         for (int i = 0; i < numSpikes; ++i)
         {
-            auto x0 = cx + inRad * std::cos(dAng * i);
-            auto y0 = cy + inRad * std::sin(dAng * i);
-            auto x1 = cx + outRad * std::cos(dAng * (i + 0.5));
-            auto y1 = cy + outRad * std::sin(dAng * (i + 0.5));
+            auto x0 = cx + outRad * std::cos(dAng * i);
+            auto y0 = cy + outRad * std::sin(dAng * i);
+
+            auto x1 = cx + inRad * std::cos(dAng * (i + 0.5));
+            auto y1 = cy + inRad * std::sin(dAng * (i + 0.5));
             if (i == 0)
                 p.startNewSubPath(x0, y0);
             else
@@ -79,7 +80,8 @@ void ElfinKnob::paint(juce::Graphics &g)
         g.addTransform(
             juce::AffineTransform()
                 .translated(-cx, -cy)
-                .rotated(continuous()->getValue01() * 2 * juce::MathConstants<float>::pi * 0.8)
+                .rotated(continuous()->getValue01() * 2 * juce::MathConstants<float>::pi * 0.8 +
+                         juce::MathConstants<float>::pi * 0.7)
                 .translated(cx, cy));
         auto ci = juce::Colour(0x22, 0x22, 0x22);
         g.setColour(ci);
