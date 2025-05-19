@@ -93,7 +93,6 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
         {
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
                                   midiTimeForParams);
-
             if (ct == maxMessagesPerSample)
             {
                 ct = 0;

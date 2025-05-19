@@ -53,7 +53,9 @@ struct ParamSource : sst::jucegui::data::Continuous
 struct DiscreteParamSource : sst::jucegui::data::Discrete
 {
     ElfinControllerAudioProcessor::float_param_t *par{nullptr};
-    DiscreteParamSource(ElfinControllerAudioProcessor::float_param_t *v, ElfinMainPanel &)
+    ElfinMainPanel &panel;
+    DiscreteParamSource(ElfinControllerAudioProcessor::float_param_t *v, ElfinMainPanel &p)
+        : panel(p)
     {
         par = v;
     }
@@ -74,6 +76,12 @@ struct DiscreteParamSource : sst::jucegui::data::Discrete
     }
     void setValueFromGUI(const int &i) override
     {
+        // poly/uni needs an all notes off to avoid hw device
+        // wedging voiuce mgr
+        if (par->desc.streaming_name == "poly_uni")
+        {
+            panel.processor.sendAllNotesOff = true;
+        }
         auto rng = par->desc.discreteRanges[i];
         auto mid = (rng.from + rng.to) / 2;
         auto f = par->getFloatForCC(mid);
