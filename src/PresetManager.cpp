@@ -144,6 +144,7 @@ void PresetManager::rescanUserPresets()
     }
 
     int32_t pidx = (int32_t)(1 + factoryPatchVector.size());
+    userPatchTree.clear();
     for (auto &p : userPatches)
     {
         userPatchTree[p.parent_path()].push_back({p, pidx});

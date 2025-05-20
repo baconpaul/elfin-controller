@@ -46,6 +46,8 @@ struct BasePanel : jcmp::NamedPanel
         {
             res->setDrawLabel(false);
         }
+        wid->delayUntilIdle = ElfinMainPanel::tooltipDelayInMS;
+
         main.sources[c] = std::move(ps);
         main.widgets[c] = std::move(wid);
         return res;
@@ -58,6 +60,8 @@ struct BasePanel : jcmp::NamedPanel
         std::unique_ptr<DiscreteParamSource> ps;
         bindAndAdd(ps, wid, p.params[c]);
         auto res = wid.get();
+        wid->delayUntilIdle = ElfinMainPanel::tooltipDelayInMS;
+
         main.discreteSources[c] = std::move(ps);
         main.widgets[c] = std::move(wid);
         return res;
@@ -71,6 +75,8 @@ struct BasePanel : jcmp::NamedPanel
         w = std::make_unique<W>();
         w->setSource(d.get());
         addAndMakeVisible(*w);
+
+        w->delayUntilIdle = ElfinMainPanel::tooltipDelayInMS;
 
         w->onBeginEdit = [wv = w.get(), q = juce::Component::SafePointer(this), p]()
         {
@@ -508,7 +514,7 @@ struct LFOPanel : BasePanel
 
 struct ModPanel : BasePanel
 {
-    ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Expression")
+    ModPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Velocity")
     {
         attach(p, EXP_TO_CUTOFF);
         addLabel(EXP_TO_CUTOFF, rightArrow + "Cutoff");

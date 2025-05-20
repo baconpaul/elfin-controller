@@ -87,6 +87,8 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     std::unique_ptr<juce::Timer> timer;
     int lastLogSize{0};
 
+    static constexpr int tooltipDelayInMS{250};
+
     std::unique_ptr<juce::FileChooser> fileChooser;
     void savePatch(), loadPatch(), setupUserPath(), initPatch();
     void loadFromFile(const fs::path &p), loadFromFile(const juce::File &);

@@ -17,6 +17,7 @@
 #include "ElfinProcessor.h"
 
 #include <string>
+#include <algorithm>
 #include <sst/jucegui/data/Continuous.h>
 #include <sst/jucegui/data/Discrete.h>
 
@@ -34,7 +35,7 @@ struct ParamSource : sst::jucegui::data::Continuous
     }
 
     std::string getLabel() const override { return par->desc.label; }
-    float getValue() const override { return par->get(); }
+    float getValue() const override { return std::clamp(par->get(), getMin(), getMax()); }
     bool isBipolar() const override { return par->desc.isBipolar; }
     void setValueFromGUI(const float &f) override
     {
@@ -46,8 +47,8 @@ struct ParamSource : sst::jucegui::data::Continuous
     }
     void setValueFromModel(const float &f) override {}
     float getDefaultValue() const override { return par->getFloatForCC(par->desc.midiCCDefault); }
-    float getMin() const override { return 0; }
-    float getMax() const override { return 1; }
+    float getMin() const override { return par->getFloatForCC(par->desc.midiCCStart); }
+    float getMax() const override { return par->getFloatForCC(par->desc.midiCCEnd); }
 };
 
 struct DiscreteParamSource : sst::jucegui::data::Discrete
