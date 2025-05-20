@@ -8,7 +8,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.14 CACHE STRING "Minimum macOS version")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(elfin-controller VERSION 0.1.0)
+project(elfin-controller VERSION 0.2.0)
 
 option(ELFIN_COPY_AFTER_BUILD "Copy after Build" FALSE)
 
@@ -29,6 +29,7 @@ list(APPEND ELFCO_FORMATS AU)
 list(APPEND ELFCO_FORMATS Standalone)
 
 set(ELFCO_PRODUCT_NAME "Elfin Controller")
+set(ELFCO_PLUGIN_NAME "The Elfin Controller")
 
 
 include(cmake/CmakeRC.cmake)
@@ -38,6 +39,7 @@ cmrc_add_resource_library(${PROJECT_NAME}-content NAMESPACE elfin_content ${CONT
 
 juce_add_plugin(${PROJECT_NAME}
   PRODUCT_NAME ${ELFCO_PRODUCT_NAME}
+  PLUGIN_NAME ${ELFCO_PLUGIN_NAME}
   COMPANY_NAME "Hideaway Studio"
   COMPANY_WEBSITE "fill.in"
   BUNDLE_ID "fill.in"
