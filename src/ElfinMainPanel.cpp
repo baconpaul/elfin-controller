@@ -597,7 +597,11 @@ void ElfinMainPanel::showPresetsMenu()
         auto sub = juce::PopupMenu();
         for (auto &c : v)
         {
-            sub.addItem(c.first, mk(c.second));
+            auto lab = c.first;
+            auto ps = lab.find(".elfin");
+            if (ps != std::string::npos)
+                lab = lab.substr(0, ps);
+            sub.addItem(lab, mk(c.second));
         }
         m.addSubMenu(k, sub);
     }
@@ -614,7 +618,7 @@ void ElfinMainPanel::showPresetsMenu()
         {
             for (auto &c : v)
             {
-                m.addItem(c.first.u8string(), mk(c.second));
+                m.addItem(c.first.replace_extension().u8string(), mk(c.second));
             }
         }
         else
@@ -622,7 +626,7 @@ void ElfinMainPanel::showPresetsMenu()
             auto sub = juce::PopupMenu();
             for (auto &c : v)
             {
-                sub.addItem(c.first.filename().u8string(), mk(c.second));
+                sub.addItem(c.first.filename().replace_extension().u8string(), mk(c.second));
             }
             m.addSubMenu(k.u8string(), sub);
         }
