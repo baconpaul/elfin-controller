@@ -55,9 +55,10 @@ struct ElfinLogo : LogoBase
 
         auto bd = logoSVG->getBounds();
         auto t = juce::AffineTransform();
+        auto sc = 0.55;
         t = t.translated(0, -bd.getY());
-        t = t.scaled(2.0, 2.0);
-        t = t.translated((getWidth() - 2 * bd.getWidth()) / 2 - 10, 0);
+        t = t.scaled(sc, sc);
+        t = t.translated(sc *(getWidth() - bd.getWidth()) / 2 + 5, 0);
         logoSVG->draw(g, 1.0, t);
     }
 };
