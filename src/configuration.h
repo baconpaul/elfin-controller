@@ -37,6 +37,9 @@ struct ElfinDescription
     {
     }
 
+    int16_t midiCCStart{0}, midiCCEnd{127};
+    std::string midiCCStartLabel{}, midiCCEndLabel{};
+
     struct LabeledMidiRange
     {
         LabeledMidiRange() {}

@@ -91,6 +91,10 @@ void setupConfiguration()
     elfinConfig[LEGATO].setAsTwoStage("Off", "On");
     elfinConfig[POLY_UNI_MODE].setAsTwoStage("Poly", "Unison");
 
+    elfinConfig[PBEND_RANGE].midiCCEnd = 30;
+    elfinConfig[DAMP_AND_ATTACK].midiCCStart = 63;
+    elfinConfig[DAMP_AND_ATTACK].midiCCStartLabel = "Off";
+
     auto &kasn = elfinConfig[KEY_ASSIGN_MODE];
     kasn.discreteRanges.emplace_back(0, 47, "Low ST");
     kasn.discreteRanges.emplace_back(48, 79, "Duo ST");

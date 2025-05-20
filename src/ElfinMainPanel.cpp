@@ -390,6 +390,10 @@ void ElfinMainPanel::showToolTip(ElfinControllerAudioProcessor::float_param_t *p
     {
         bl.y -= oc->getHeight() + toolTip->getHeight();
     }
+    if (bl.x + toolTip->getWidth() > getWidth() * 0.95)
+    {
+        bl.x -= toolTip->getWidth() - oc->getWidth();
+    }
     toolTip->setTopLeftPosition(bl);
 }
 
@@ -400,16 +404,21 @@ void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t 
     using row_t = jcmp::ToolTip::Row;
     std::vector<row_t> rows;
 
-    row_t one;
-    one.leftAlignText = "CC=" + std::to_string(p->desc.midiCC);
-    one.leftIsMonospace = true;
-    row_t two;
-    two.leftAlignText = "VAL=" + std::to_string(p->getCC());
-    two.leftIsMonospace = true;
-    rows.push_back(two);
-    rows.push_back(one);
-    toolTip->setTooltipTitleAndData(p->desc.name, rows);
+    std::string title = p->desc.name;
+    title += " (cc=" + std::to_string(p->desc.midiCC) + ")";
+    row_t val;
+    val.centerAlignText = "value=" + std::to_string(p->getCC());
+
+    if (p->getCC() == p->desc.midiCCStart && !p->desc.midiCCStartLabel.empty())
+        val.centerAlignText += " (" + p->desc.midiCCStartLabel + ")";
+    if (p->getCC() == p->desc.midiCCEnd && !p->desc.midiCCEndLabel.empty())
+        val.centerAlignText += " (" + p->desc.midiCCEndLabel + ")";
+
+    val.centerIsMonospace = true;
+    rows.push_back(val);
+    toolTip->setTooltipTitleAndData(title, rows);
     toolTip->resetSizeFromData();
+    toolTip->titleAlignment = juce::Justification::centred;
 }
 
 void ElfinMainPanel::hideToolTip()
@@ -448,6 +457,10 @@ void ElfinMainPanel::setupStyle()
         PatchMenu, jcmp::MenuButton::Styles::labelfont,
         st->getFont(jcmp::MenuButton::Styles::styleClass, jcmp::MenuButton::Styles::labelfont)
             .withHeight(18));
+
+    st->setFont(
+        jcmp::ToolTip::Styles::styleClass, jcmp::ToolTip::Styles::labelfont,
+        st->getFont(jcmp::Label::Styles::styleClass, jcmp::Label::Styles::labelfont).boldened());
     st->setColour(PatchMenu, jcmp::MenuButton::Styles::fill, juce::Colour(0x30, 0x30, 0x30));
 
     st->setColour(jbs::ValueGutter::styleClass, jbs::ValueGutter::gutter,
