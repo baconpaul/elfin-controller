@@ -154,6 +154,8 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
             ELFLOG("Undisplayed control : (ElfinControl)" << i);
         }
     }
+
+    setTransform(juce::AffineTransform().scaled(uiScale));
 }
 
 ElfinMainPanel::~ElfinMainPanel()

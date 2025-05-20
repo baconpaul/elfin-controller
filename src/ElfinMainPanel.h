@@ -33,6 +33,8 @@
 
 namespace baconpaul::elfin_controller
 {
+static constexpr float uiScale{1.2};
+
 struct FilterPanel;
 struct OscPanel;
 struct EGPanel;

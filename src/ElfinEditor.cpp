@@ -30,7 +30,7 @@ ElfinControllerAudioProcessorEditor::ElfinControllerAudioProcessorEditor(
     idleTimer = std::make_unique<IdleTimer>(this);
     idleTimer->startTimer(1000 / 60);
 
-    setSize(690, 521);
+    setSize(690 * uiScale, 521 * uiScale);
 }
 
 ElfinControllerAudioProcessorEditor::~ElfinControllerAudioProcessorEditor() {}
@@ -39,5 +39,9 @@ void ElfinControllerAudioProcessorEditor::idle() {}
 
 void ElfinControllerAudioProcessorEditor::handleAsyncUpdate() {}
 
-void ElfinControllerAudioProcessorEditor::resized() { mainPanel->setBounds(getLocalBounds()); }
+void ElfinControllerAudioProcessorEditor::resized()
+{
+    mainPanel->setBounds(
+        getLocalBounds().transformedBy(juce::AffineTransform().scaled(1.0 / uiScale)));
+}
 } // namespace baconpaul::elfin_controller
