@@ -218,7 +218,10 @@ void ElfinMainPanel::onIdle()
     }
 
     if (doRepaint)
+    {
+        settingsPanel->resetUnison();
         repaint();
+    }
 }
 
 void ElfinMainPanel::loadPatch()

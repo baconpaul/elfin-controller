@@ -55,6 +55,7 @@ struct DiscreteParamSource : sst::jucegui::data::Discrete
 {
     ElfinControllerAudioProcessor::float_param_t *par{nullptr};
     ElfinMainPanel &panel;
+    std::function<void(int)> andThenOnGui{nullptr};
     DiscreteParamSource(ElfinControllerAudioProcessor::float_param_t *v, ElfinMainPanel &p)
         : panel(p)
     {
@@ -87,6 +88,8 @@ struct DiscreteParamSource : sst::jucegui::data::Discrete
         auto mid = (rng.from + rng.to) / 2;
         auto f = par->getFloatForCC(mid);
         par->setValueNotifyingHost(f);
+        if (andThenOnGui)
+            andThenOnGui(i);
     }
     void setValueFromModel(const int &f) override {}
     int getDefaultValue() const override { return 2; }

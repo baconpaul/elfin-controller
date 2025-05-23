@@ -40,9 +40,12 @@ void ElfinKnob::paint(juce::Graphics &g)
 
     // layer one a light sort of inner gugter
     int currRad = 8;
+    float alpha{1.f};
+    if (!isEnabled())
+        alpha = 0.5f;
 
     {
-        auto ci = juce::Colour(0xA0, 0xA0, 0xA0);
+        auto ci = juce::Colour(0xA0, 0xA0, 0xA0).withAlpha(alpha);
         auto gradedo = juce::ColourGradient::vertical(ci.brighter(0.2), knobarea.getY(),
                                                       ci.darker(0.3), knobarea.getBottom());
         g.setGradientFill(gradedo);
@@ -83,23 +86,23 @@ void ElfinKnob::paint(juce::Graphics &g)
                 .rotated(continuous()->getValue01() * 2 * juce::MathConstants<float>::pi * 0.8 +
                          juce::MathConstants<float>::pi * 0.7)
                 .translated(cx, cy));
-        auto ci = juce::Colour(0x22, 0x22, 0x22);
+        auto ci = juce::Colour(0x22, 0x22, 0x22).withAlpha(alpha);
         g.setColour(ci);
         g.fillPath(p);
-        g.setColour(juce::Colours::black);
+        g.setColour(juce::Colours::black.withAlpha(alpha));
         g.strokePath(p, juce::PathStrokeType(1));
     }
 
     // Then a fixed inner circle
     currRad += 3;
     {
-        auto ci = juce::Colour(0x20, 0x20, 0x20);
+        auto ci = juce::Colour(0x20, 0x20, 0x20).withAlpha(alpha);
         auto gradedo = juce::ColourGradient::vertical(ci.brighter(0.3), knobarea.getY(),
                                                       ci.darker(0.2), knobarea.getBottom());
 
         g.setGradientFill(gradedo);
         g.fillPath(circle(currRad));
-        g.setColour(juce::Colour(0x20, 0x20, 0x20));
+        g.setColour(juce::Colour(0x20, 0x20, 0x20).withAlpha(alpha));
         g.strokePath(circle(currRad), juce::PathStrokeType(1));
     }
 

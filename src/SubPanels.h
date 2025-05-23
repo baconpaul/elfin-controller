@@ -537,20 +537,52 @@ struct ModPanel : BasePanel
 
 struct SettingsPanel : BasePanel
 {
-    std::vector<ElfinControl> contents{ElfinControl::POLY_UNI_MODE,  ElfinControl::UNI_DETUNE,
-                                       ElfinControl::PORTA,          ElfinControl::LEGATO,
-                                       ElfinControl::PBEND_RANGE,    ElfinControl::DAMP_AND_ATTACK,
-                                       ElfinControl::KEY_ASSIGN_MODE};
     SettingsPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p)
         : BasePanel(m, "Voice Manager")
     {
-        createFrom(p, contents);
+        attach(p, UNI_DETUNE);
+        addLabel(UNI_DETUNE, "Detune");
+
+        attach(p, PORTA);
+        addLabel(PORTA, "Porta");
+
+        attach(p, PBEND_RANGE);
+        addLabel(PBEND_RANGE, "PBend");
+
+        attach(p, DAMP_AND_ATTACK);
+        addLabel(DAMP_AND_ATTACK, "DampAtk");
+
+        attachDiscrete(p, KEY_ASSIGN_MODE);
+
+        auto ub = attachDiscrete<jcmp::ToggleButton>(p, POLY_UNI_MODE);
+        ub->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
+        ub->setLabel("Unison");
+        main.discreteSources[POLY_UNI_MODE]->andThenOnGui = [this](int v) { resetUnison(); };
+
+        auto lb = attachDiscrete<jcmp::ToggleButton>(p, LEGATO);
+        lb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
+        lb->setLabel("Legato");
+    }
+
+    void resetUnison()
+    {
+        auto uv = main.processor.params[POLY_UNI_MODE]->getCC() <= 63;
+        main.widgets[UNI_DETUNE]->setEnabled(uv);
     }
     void resized() override
     {
         auto lo = getLayoutHList();
-        lo.addGap(15);
         int n = 20;
+
+        auto vl = jlo::VList().withWidth(widgetHeight * 1.5).withAutoGap(margin);
+        vl.add(jlo::Component(*main.widgets[POLY_UNI_MODE]).withHeight(25));
+        vl.add(jlo::Component(*main.widgets[LEGATO]).withHeight(25));
+        lo.add(vl);
+
+        std::vector<ElfinControl> contents{ElfinControl::UNI_DETUNE, ElfinControl::PORTA,
+                                           ElfinControl::PBEND_RANGE, ElfinControl::DAMP_AND_ATTACK,
+                                           ElfinControl::KEY_ASSIGN_MODE};
+
         for (auto c : contents)
         {
             if (c != KEY_ASSIGN_MODE)
@@ -563,12 +595,12 @@ struct SettingsPanel : BasePanel
                            .withWidth(widgetHeight * 1.5)
                            .withHeight(widgetHeight + widgetLabelHeight));
             }
-            if (c == UNI_DETUNE)
+            if (c == PORTA)
                 lo.addGap(widgetHeight + 2 * margin);
             if (c == PBEND_RANGE)
-                lo.addGap(widgetHeight);
+                lo.addGap(2 * widgetHeight + 2 * margin);
             if (c == DAMP_AND_ATTACK)
-                lo.addGap(widgetHeight - 20);
+                lo.addGap(widgetHeight * 0.5 + 3 * margin);
         }
         lo.doLayout();
     }
