@@ -85,10 +85,23 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
         w->repaint();
     };
 
-    presetButton = std::make_unique<jcmp::JogUpDownButton>();
+    presetButton = std::make_unique<PresetButton>();
     presetButton->setCustomClass(PatchMenu);
     presetButton->setSource(presetDataBinding.get());
-    presetButton->onPopupMenu = [this]() { showPresetsMenu(); };
+    presetButton->onPopupMenu = [w = juce::Component::SafePointer(this)]()
+    {
+        if (w)
+            w->showElfinMainMenu();
+    };
+    presetButton->onDice = [w = juce::Component::SafePointer(this)]()
+    {
+        if (w)
+        {
+            w->processor.randomizePatch();
+            w->repaint();
+        };
+    };
+    presetButton->arrowPosition = jcmp::JogUpDownButton::RIGHT_SIDE;
     addAndMakeVisible(*presetButton);
 
     sheet_t::addClass(PatchMenu).withBaseClass(jcmp::JogUpDownButton::Styles::styleClass);
@@ -100,16 +113,6 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
 
     lnf = std::make_unique<sst::jucegui::style::LookAndFeelManager>(this);
     lnf->setStyle(style());
-
-    mainMenu = std::make_unique<jcmp::GlyphButton>(jcmp::GlyphPainter::GlyphType::SETTINGS);
-    mainMenu->setOnCallback(
-        [w = juce::Component::SafePointer(this)]()
-        {
-            if (!w)
-                return;
-            w->showMainMenu();
-        });
-    addAndMakeVisible(*mainMenu);
 
     filterPanel = std::make_unique<FilterPanel>(*this, p);
     addAndMakeVisible(*filterPanel);
@@ -165,93 +168,22 @@ ElfinMainPanel::~ElfinMainPanel()
     setLookAndFeel(nullptr);
 }
 
-void ElfinMainPanel::showMainMenu()
-{
-    auto p = juce::PopupMenu();
-    p.addSectionHeader("Elfin Controller");
-    p.addSeparator();
-    p.addItem("Save Patch",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (w)
-                      w->savePatch();
-              });
-    p.addItem("Load Patch",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (w)
-                      w->loadPatch();
-              });
-    p.addItem("Randomize Patch",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (w)
-                      w->processor.randomizePatch();
-              });
-    p.addItem("Init Patch",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (!w)
-                      return;
-                  w->initPatch();
-              });
-
-    p.addSeparator();
-    p.addItem("Resend Patch to MIDI",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (!w)
-                      return;
-                  for (auto p : w->processor.params)
-                      p->invalid = true;
-              });
-    p.addItem("Send All Notes Off",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (!w)
-                      return;
-                  w->processor.sendAllNotesOff = true;
-              });
-
-    p.addSeparator();
-    p.addItem("About",
-              [w = juce::Component::SafePointer(this)]()
-              {
-                  if (!w)
-                      return;
-                  w->aboutScreen->showOver(w.getComponent());
-              });
-    p.addItem(
-        "Source Code", []()
-        { juce::URL("https://github.com/baconpaul/elfin-controller").launchInDefaultBrowser(); });
-
-    auto vi = std::string() + sst::plugininfra::VersionInformation::git_implied_display_version +
-              " " + sst::plugininfra::VersionInformation::git_commit_hash;
-    p.addItem(vi, false, false, []() {});
-    p.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this));
-}
-
 void ElfinMainPanel::resized()
 {
     auto b = getLocalBounds().reduced(outerMargin);
 
     auto l1 = b.withHeight(labelHeight);
-    elfinLogo->setBounds(l1.reduced(labelHeight + subLabelHeight + margin, 0));
-    hideawayLogo->setBounds(b.withTrimmedTop(b.getHeight() - 18));
+    elfinLogo->setBounds(l1.withTrimmedRight(400));
+    hideawayLogo->setBounds(l1.withTrimmedLeft(400));
 
-    presetButton->setBounds(l1.translated(0, labelHeight)
-                                .withHeight(subLabelHeight)
-                                .reduced(labelHeight + subLabelHeight + margin + 100, 0));
+    presetButton->setBounds(l1.withHeight(labelHeight).withTrimmedLeft(margin).reduced(185, 0));
 
-    mainMenu->setBounds(
-        l1.withHeight(labelHeight + subLabelHeight).withWidth(labelHeight + subLabelHeight));
-
-    auto listArea = b.withTrimmedTop(labelHeight + subLabelHeight + margin);
+    auto listArea = b.withTrimmedTop(labelHeight);
 
     auto lo = jlo::VList()
                   .at(listArea.getX(), listArea.getY())
                   .withWidth(listArea.getWidth())
-                  .withAutoGap(margin);
+                  .withAutoGap(0);
 
     auto rwid = 472 + 203 + margin;
 
@@ -274,22 +206,6 @@ void ElfinMainPanel::resized()
     row4.add(jlo::Component(*settingsPanel).withWidth(rwid));
     lo.add(row4);
     lo.doLayout();
-}
-
-void ElfinMainPanel::paint(juce::Graphics &g)
-{
-    WindowPanel::paint(g);
-    auto txt = sst::plugininfra::VersionInformation::git_implied_display_version;
-    auto txt2 = sst::plugininfra::VersionInformation::git_commit_hash;
-
-    g.setFont(style()
-                  ->getFont(jcmp::base_styles::BaseLabel::styleClass,
-                            jcmp::base_styles::BaseLabel::labelfont)
-                  .withHeight(10));
-    g.setColour(juce::Colour(0x90, 0x90, 0x90));
-    auto b = getLocalBounds().reduced(6, 4);
-    g.drawText(txt, b.withTrimmedBottom(12), juce::Justification::bottomRight);
-    g.drawText(txt2, b, juce::Justification::bottomRight);
 }
 
 void ElfinMainPanel::onIdle()
@@ -418,7 +334,7 @@ void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t 
     rows.push_back(val);
     toolTip->setTooltipTitleAndData(title, rows);
     toolTip->resetSizeFromData();
-    toolTip->titleAlignment = juce::Justification::centred;
+    toolTip->titleAlignment = juce::Justification::centredTop;
 }
 
 void ElfinMainPanel::hideToolTip()
@@ -556,7 +472,7 @@ void ElfinMainPanel::loadFromFile(const fs::path &p)
     }
 }
 
-void ElfinMainPanel::showPresetsMenu()
+void ElfinMainPanel::showElfinMainMenu()
 {
     auto m = juce::PopupMenu();
     m.addSectionHeader("Presets");
@@ -590,6 +506,42 @@ void ElfinMainPanel::showPresetsMenu()
                       return;
                   w->presetDataBinding->setValueFromGUI(0);
               });
+    m.addSeparator();
+
+    m.addSeparator();
+    m.addItem("Resend Patch to MIDI",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  for (auto p : w->processor.params)
+                      p->invalid = true;
+              });
+    m.addItem("Send All Notes Off",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->processor.sendAllNotesOff = true;
+              });
+
+    m.addSeparator();
+    m.addItem("About",
+              [w = juce::Component::SafePointer(this)]()
+              {
+                  if (!w)
+                      return;
+                  w->aboutScreen->showOver(w.getComponent());
+              });
+    m.addItem(
+        "Source Code", []()
+        { juce::URL("https://github.com/baconpaul/elfin-controller").launchInDefaultBrowser(); });
+
+    m.addSeparator();
+    auto vi = std::string() + sst::plugininfra::VersionInformation::git_implied_display_version;
+    m.addItem("Version:", false, false, []() {});
+    m.addItem(vi, false, false, []() {});
+    m.addItem(sst::plugininfra::VersionInformation::git_commit_hash, false, false, []() {});
     m.addColumnBreak();
     m.addSectionHeader("Factory Presets");
     m.addSeparator();
@@ -645,7 +597,11 @@ void ElfinMainPanel::showPresetsMenu()
         }
     }
 
-    m.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this));
+    auto bd = presetButton->getBounds();
+    auto where = bd.getBottomLeft();
+    auto rec =
+        juce::Rectangle<int>().withWidth(1).withHeight(1).withPosition(localPointToGlobal(where));
+    m.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this).withTargetScreenArea(rec));
 }
 
 } // namespace baconpaul::elfin_controller

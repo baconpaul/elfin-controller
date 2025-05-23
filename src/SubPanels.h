@@ -34,7 +34,10 @@ namespace jlo = sst::jucegui::layouts;
 struct BasePanel : jcmp::NamedPanel
 {
     ElfinMainPanel &main;
-    BasePanel(ElfinMainPanel &m, const std::string &s) : main(m), NamedPanel(s) {}
+    BasePanel(ElfinMainPanel &m, const std::string &s) : main(m), NamedPanel(s)
+    {
+        labelPosition = IN_BORDER;
+    }
 
     template <typename W = ElfinKnob> W *attach(ElfinControllerAudioProcessor &p, ElfinControl c)
     {

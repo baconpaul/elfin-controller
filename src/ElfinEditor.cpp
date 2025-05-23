@@ -30,7 +30,7 @@ ElfinControllerAudioProcessorEditor::ElfinControllerAudioProcessorEditor(
     idleTimer = std::make_unique<IdleTimer>(this);
     idleTimer->startTimer(1000 / 60);
 
-    setSize(690 * uiScale, 521 * uiScale);
+    setSize(690 * uiScale, 452 * uiScale);
 }
 
 ElfinControllerAudioProcessorEditor::~ElfinControllerAudioProcessorEditor() {}

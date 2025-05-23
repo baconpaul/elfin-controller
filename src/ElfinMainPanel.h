@@ -42,6 +42,8 @@ struct LFOPanel;
 struct ModPanel;
 struct SettingsPanel;
 
+struct PresetButton;
+
 struct ParamSource;
 struct DiscreteParamSource;
 
@@ -51,9 +53,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     ElfinMainPanel(ElfinControllerAudioProcessor &);
     ~ElfinMainPanel();
 
-    std::unique_ptr<sst::jucegui::components::GlyphButton> mainMenu;
-    void showMainMenu();
-    void showPresetsMenu();
+    void showElfinMainMenu();
 
     std::vector<std::unique_ptr<sst::jucegui::data::Continuous>> otherSources;
     std::vector<std::unique_ptr<sst::jucegui::data::Discrete>> otherDiscrete;
@@ -78,8 +78,6 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
 
     std::unique_ptr<sst::jucegui::style::LookAndFeelManager> lnf;
 
-    void paint(juce::Graphics &g) override;
-
     void onIdle();
 
     void resized() override;
@@ -95,7 +93,7 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     fs::path userPath;
     std::unique_ptr<PresetManager> presetManager;
     std::unique_ptr<PresetDataBinding> presetDataBinding;
-    std::unique_ptr<sst::jucegui::components::JogUpDownButton> presetButton;
+    std::unique_ptr<PresetButton> presetButton;
 
     std::unique_ptr<ElfinAbout> aboutScreen;
 

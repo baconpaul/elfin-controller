@@ -16,6 +16,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <memory>
+#include <sst/jucegui/components/JogUpDownButton.h>
 
 #include <cmrc/cmrc.hpp>
 
@@ -42,6 +43,7 @@ struct LogoBase : juce::Component
         {
             ELFLOG(e.what());
         }
+        setInterceptsMouseClicks(false, false);
     }
 };
 struct ElfinLogo : LogoBase
@@ -52,13 +54,13 @@ struct ElfinLogo : LogoBase
     {
         if (!logoSVG)
             return;
-
+        // g.fillAll(juce::Colours::darkgrey);
         auto bd = logoSVG->getBounds();
         auto t = juce::AffineTransform();
-        auto sc = 0.55;
-        t = t.translated(0, -bd.getY());
+        auto sc = 0.5;
+        t = t.translated(-bd.getX(), -bd.getY());
         t = t.scaled(sc, sc);
-        t = t.translated(sc *(getWidth() - bd.getWidth()) / 2 + 5, 0);
+        // t = t.translated((getWidth() - bd.getWidth()) / 2, 0);
         logoSVG->draw(g, 1.0, t);
     }
 };
@@ -71,13 +73,75 @@ struct HideawayLogo : LogoBase
     {
         if (!logoSVG)
             return;
-        auto scale = 0.45;
+        // g.fillAll(juce::Colours::darkblue);
+        auto scale = 0.51;
         auto bd = logoSVG->getBounds();
         auto t = juce::AffineTransform();
-        t = t.translated(0, -bd.getY());
+        t = t.translated(-bd.getX() + getWidth() - 45, -bd.getY() + 8);
         t = t.scaled(scale, scale);
-        t = t.translated((getWidth() - scale * bd.getWidth()) / 2, 0);
         logoSVG->draw(g, 1.0, t);
+    }
+};
+
+struct PresetButton : sst::jucegui::components::JogUpDownButton
+{
+    juce::Rectangle<int> hamburgerButton() const
+    {
+        auto bx = getLocalBounds().reduced(1);
+        return bx.withWidth(bx.getHeight());
+    }
+    juce::Rectangle<int> diceButton() const
+    {
+        auto bx = getLocalBounds().reduced(1);
+        return bx.withWidth(bx.getHeight()).translated(bx.getHeight(), 0);
+    }
+
+    std::function<void()> onDice = []() { ELFLOG("dice"); };
+
+    bool isOverControl(const juce::Point<int> &e) const override
+    {
+        auto pic = sst::jucegui::components::JogUpDownButton::isOverControl(e);
+        // we *want* the hamburger to pop the menu right!
+        return pic || /* hamburgerButton().contains(e) || */ diceButton().contains(e);
+    }
+
+    void mouseUp(const juce::MouseEvent &event) override
+    {
+        if (!event.mods.isPopupMenu() && diceButton().contains(event.position.toInt()) && onDice)
+        {
+            onDice();
+        }
+        else
+        {
+            sst::jucegui::components::JogUpDownButton::mouseUp(event);
+        }
+    }
+
+    void paint(juce::Graphics &g) override
+    {
+        auto tx = getColour(Styles::labelcolor);
+        auto har = tx;
+        if (isHovered)
+        {
+            har = getColour(Styles::jogbutton_hover);
+        }
+
+        sst::jucegui::components::JogUpDownButton::paint(g);
+        auto hc = tx;
+        if (hamburgerButton().contains(hoverX, getHeight() / 2))
+        {
+            hc = har;
+        }
+        sst::jucegui::components::GlyphPainter::paintGlyph(
+            g, hamburgerButton(), sst::jucegui::components::GlyphPainter::GlyphType::HAMBURGER, hc);
+
+        hc = tx;
+        if (diceButton().contains(hoverX, getHeight() / 2))
+        {
+            hc = har;
+        }
+        sst::jucegui::components::GlyphPainter::paintGlyph(
+            g, diceButton(), sst::jucegui::components::GlyphPainter::GlyphType::DICE, hc);
     }
 };
 
