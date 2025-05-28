@@ -104,9 +104,9 @@ void setupConfiguration()
     kasn.discreteRanges.emplace_back(112, 127, "Last MT");
 
     auto &ptc = elfinConfig[PITCH_TO_CUTOFF];
-    ptc.discreteRanges.emplace_back(0, 32, "Off");
+    ptc.discreteRanges.emplace_back(0, 32, "None");
     ptc.discreteRanges.emplace_back(33, 96, "Half");
-    ptc.discreteRanges.emplace_back(97, 127, "On");
+    ptc.discreteRanges.emplace_back(97, 127, "Full");
 
     std::set<std::string> mappedStreaming;
     for (int i = 0; i < ElfinControl::numElfinControlTypes; ++i)
