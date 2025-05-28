@@ -151,7 +151,10 @@ struct BasePanel : jcmp::NamedPanel
             res.addGap(widgetHeight);
 
         if (lit != main.widgetLabels.end())
-            res.add(jlo::Component(*lit->second).withHeight(widgetLabelHeight).withWidth(width));
+            res.add(jlo::Component(*lit->second)
+                        .withHeight(widgetLabelHeight)
+                        .withWidth(width + 20)
+                        .centerInParent());
 
         return res;
     }
@@ -551,7 +554,7 @@ struct SettingsPanel : BasePanel
         addLabel(PBEND_RANGE, "Bend Range");
 
         attach(p, DAMP_AND_ATTACK);
-        addLabel(DAMP_AND_ATTACK, "Damp/Atk");
+        addLabel(DAMP_AND_ATTACK, "EG Damping");
 
         attachDiscrete(p, KEY_ASSIGN_MODE);
 

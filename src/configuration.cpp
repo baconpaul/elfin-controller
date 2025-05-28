@@ -26,7 +26,7 @@ void setupConfiguration()
         {OSC2_FINE, {"osc2_fine", "Osc 2 Fine", "Fine", 21, 64, true}},
 
         {FILT_CUTOFF, {"filt_cutoff", "Filter Cutoff", "Cutoff", 16, 127}},
-        {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Reson", 17, 0}},
+        {FILT_RESONANCE, {"filt_resonance", "Filter Resonance", "Resonance", 17, 0}},
         {EG_TO_CUTOFF, {"eg_to_cutoff", "Envelope -> Cutoff", "> Cutoff", 18, 64, true}},
 
         {SUB_TYPE, {"sub_type", "Sub Wave", "Sub", 29, 15}},
@@ -63,7 +63,7 @@ void setupConfiguration()
         {OSC_LEVEL, {"osc_level", "Osc Level", "Osc Level", 108, 127}},
         {UNI_DETUNE, {"uni_detune", "Unison Detune", "Detune", 109, 0}},
         {POLY_UNI_MODE, {"poly_uni", "Poly Unison Mode", "Mode", 110, 31}},
-        {DAMP_AND_ATTACK, {"damp_and_attack", "Damp & Attack", "Damp/Atk", 111, 63}}};
+        {DAMP_AND_ATTACK, {"damp_and_attack", "EG Damping", "EG Damping", 111, 63}}};
 
     // Set up the discrete ranges
     auto &ot = elfinConfig[OSC12_TYPE];
