@@ -173,10 +173,11 @@ void ElfinMainPanel::resized()
     auto b = getLocalBounds().reduced(outerMargin);
 
     auto l1 = b.withHeight(labelHeight);
-    elfinLogo->setBounds(l1.withTrimmedRight(400));
-    hideawayLogo->setBounds(l1.withTrimmedLeft(400));
+    elfinLogo->setBounds(l1.withTrimmedRight(400).translated(4, 5));
+    hideawayLogo->setBounds(l1.withTrimmedLeft(400).translated(0, 4));
 
-    presetButton->setBounds(l1.withHeight(labelHeight).withTrimmedLeft(margin).reduced(185, 0));
+    presetButton->setBounds(
+        l1.withHeight(labelHeight).withTrimmedLeft(margin).reduced(185, 0).translated(0, 3));
 
     auto listArea = b.withTrimmedTop(labelHeight);
 
@@ -269,7 +270,7 @@ void ElfinMainPanel::savePatch()
                                  }
                                  else
                                  {
-                                     ELFLOG("Error saving");
+                                     ELFLOG("Error when saving patch!");
                                  }
                              });
 }
@@ -324,9 +325,9 @@ void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t 
     std::vector<row_t> rows;
 
     std::string title = p->desc.name;
-    title += " (cc=" + std::to_string(p->desc.midiCC) + ")";
+    title += " (CC #" + std::to_string(p->desc.midiCC) + ")";
     row_t val;
-    val.centerAlignText = "value=" + std::to_string(p->getCC());
+    val.centerAlignText = std::to_string(p->getCC());
 
     if (p->getCC() == p->desc.midiCCStart && !p->desc.midiCCStartLabel.empty())
         val.centerAlignText += " (" + p->desc.midiCCStartLabel + ")";
@@ -422,7 +423,7 @@ void ElfinMainPanel::loadFromFile(const juce::File &jf)
     {
         if (jf.getSize() != 108)
         {
-            ELFLOG("Sysex file with wrong size");
+            ELFLOG("Sysex file has the wrong size!");
             return;
         }
         juce::MemoryBlock mb;
@@ -458,7 +459,7 @@ void ElfinMainPanel::loadFromFile(const fs::path &p)
         }
         catch (fs::filesystem_error &e)
         {
-            ELFLOG("Cant stat syx file");
+            ELFLOG("Cannot stat sysex file!");
             return;
         }
         std::ifstream file(p, std::ios::in | std::ios::binary);
@@ -478,17 +479,16 @@ void ElfinMainPanel::loadFromFile(const fs::path &p)
 void ElfinMainPanel::showElfinMainMenu()
 {
     auto m = juce::PopupMenu();
-    m.addSectionHeader("Presets");
-    m.addSeparator();
+    m.addSectionHeader("Manage");
 
-    m.addItem("Save Patch",
+    m.addItem("Save Patch...",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
                       return;
                   w->savePatch();
               });
-    m.addItem("Load Patch",
+    m.addItem("Load Patch...",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
@@ -502,17 +502,17 @@ void ElfinMainPanel::showElfinMainMenu()
                       return;
                   w->processor.randomizePatch();
               });
-    m.addItem("Init Patch",
+    m.addItem("Initialize Patch",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
                       return;
                   w->presetDataBinding->setValueFromGUI(0);
               });
-    m.addSeparator();
 
     m.addSeparator();
-    m.addItem("Resend Patch to MIDI",
+
+    m.addItem("Resend Patch To Device",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
@@ -529,7 +529,8 @@ void ElfinMainPanel::showElfinMainMenu()
               });
 
     m.addSeparator();
-    m.addItem("About",
+
+    m.addItem("About...",
               [w = juce::Component::SafePointer(this)]()
               {
                   if (!w)
@@ -537,17 +538,17 @@ void ElfinMainPanel::showElfinMainMenu()
                   w->aboutScreen->showOver(w.getComponent());
               });
     m.addItem(
-        "Source Code", []()
+        "Source Code...", []()
         { juce::URL("https://github.com/baconpaul/elfin-controller").launchInDefaultBrowser(); });
 
     m.addSeparator();
+
     auto vi = std::string() + sst::plugininfra::VersionInformation::git_implied_display_version;
     m.addItem("Version:", false, false, []() {});
     m.addItem(vi, false, false, []() {});
     m.addItem(sst::plugininfra::VersionInformation::git_commit_hash, false, false, []() {});
     m.addColumnBreak();
     m.addSectionHeader("Factory Presets");
-    m.addSeparator();
 
     auto mk = [w = juce::Component::SafePointer(this)](const int &c)
     {
@@ -577,7 +578,6 @@ void ElfinMainPanel::showElfinMainMenu()
     {
         m.addColumnBreak();
         m.addSectionHeader("User Presets");
-        m.addSeparator();
     }
 
     for (auto &[k, v] : presetManager->userPatchTree)

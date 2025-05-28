@@ -48,7 +48,7 @@ struct LogoBase : juce::Component
 };
 struct ElfinLogo : LogoBase
 {
-    ElfinLogo() : LogoBase("The Elfin Logo.svg") { assert(logoSVG); }
+    ElfinLogo() : LogoBase("The Elfin Controller.svg") { assert(logoSVG); }
 
     void paint(juce::Graphics &g) override
     {
@@ -67,7 +67,7 @@ struct ElfinLogo : LogoBase
 
 struct HideawayLogo : LogoBase
 {
-    HideawayLogo() : LogoBase("Hideaway logo.svg") { assert(logoSVG); }
+    HideawayLogo() : LogoBase("Hideaway Studio.svg") { assert(logoSVG); }
 
     void paint(juce::Graphics &g) override
     {
