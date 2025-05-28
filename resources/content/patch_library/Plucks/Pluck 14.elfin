@@ -9,8 +9,8 @@
   <param id="sub_level" cc="26" ccval="127"/>
   <param id="eg_to_pitch" cc="104" ccval="59"/>
   <param id="eg_to_pitch_target" cc="105" ccval="95"/>
-  <param id="filt_cutoff" cc="16" ccval="86"/>
-  <param id="filt_resonance" cc="17" ccval="39"/>
+  <param id="filt_cutoff" cc="16" ccval="75"/>
+  <param id="filt_resonance" cc="17" ccval="65"/>
   <param id="eg_to_cutoff" cc="18" ccval="67"/>
   <param id="eg_onoff" cc="31" ccval="95"/>
   <param id="eg_a" cc="23" ccval="0"/>
@@ -28,7 +28,7 @@
   <param id="pbend_range" cc="85" ccval="50"/>
   <param id="pitch_to_cut" cc="86" ccval="64"/>
   <param id="exp_to_cut" cc="106" ccval="101"/>
-  <param id="exp_to_amp" cc="107" ccval="41"/>
+  <param id="exp_to_amp" cc="107" ccval="39"/>
   <param id="portamento" cc="22" ccval="0"/>
   <param id="legato" cc="30" ccval="95"/>
   <param id="key_assign" cc="87" ccval="119"/>
