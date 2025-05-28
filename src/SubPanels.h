@@ -151,7 +151,10 @@ struct BasePanel : jcmp::NamedPanel
             res.addGap(widgetHeight);
 
         if (lit != main.widgetLabels.end())
-            res.add(jlo::Component(*lit->second).withHeight(widgetLabelHeight).withWidth(width));
+            res.add(jlo::Component(*lit->second)
+                        .withHeight(widgetLabelHeight)
+                        .withWidth(width + 20)
+                        .centerInParent());
 
         return res;
     }
@@ -313,7 +316,7 @@ struct OscPanel : BasePanel
                 if (i == 0)
                     return "Saw";
                 else
-                    return "Sqr";
+                    return "Square";
             }
             else
             {
@@ -322,7 +325,7 @@ struct OscPanel : BasePanel
                 case 0:
                     return "Saw";
                 case 1:
-                    return "Sqr";
+                    return "Square";
                 case 2:
                     return "Noise";
                 }
@@ -345,7 +348,7 @@ struct OscPanel : BasePanel
     std::vector<ElfinControl> contents{ElfinControl::OSC12_MIX, ElfinControl::OSC2_COARSE,
                                        ElfinControl::OSC2_FINE, ElfinControl::SUB_TYPE,
                                        ElfinControl::SUB_LEVEL, ElfinControl::OSC_LEVEL};
-    OscPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Oscillator")
+    OscPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "Oscillators")
     {
         auto typepar = p.params[OSC12_TYPE];
         assert(typepar);
@@ -385,15 +388,18 @@ struct OscPanel : BasePanel
         lo.add(labeledItem(*o2t, *o2lab));
 
         int n = 66;
-        lo.addGap(n);
 
         lo.add(controlLayoutComponent(OSC2_COARSE));
         lo.add(controlLayoutComponent(OSC2_FINE));
+
+        lo.addGap(n);
+
         lo.add(controlLayoutComponent(OSC_LEVEL));
 
         lo.addGap(n);
-        lo.add(controlLayoutComponent(SUB_LEVEL));
+
         lo.add(controlLayoutComponent(SUB_TYPE));
+        lo.add(controlLayoutComponent(SUB_LEVEL));
 
         auto bx = lo.doLayout();
     }
@@ -406,11 +412,11 @@ struct EGPanel : BasePanel
     EGPanel(ElfinMainPanel &m, ElfinControllerAudioProcessor &p) : BasePanel(m, "EG")
     {
         attach(p, EG_A);
-        addLabel(EG_A, "A");
+        addLabel(EG_A, "Attack");
         attach(p, EG_D);
-        addLabel(EG_D, "D");
+        addLabel(EG_D, "Decay");
         attach(p, EG_S);
-        addLabel(EG_S, "S");
+        addLabel(EG_S, "Sustain");
 
         auto tb = attachDiscrete<jcmp::ToggleButton>(p, EG_ON_OFF);
         tb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
@@ -447,7 +453,6 @@ struct EGPanel : BasePanel
         lo.add(controlLayoutComponent(EG_TO_LFORATE));
 
         static constexpr int tgtWidth{30};
-        auto pwid = widgetHeight + tgtWidth + margin;
         auto pl = jlo::VList().withWidth(tgtWidth);
         auto ptl = jlo::HList().withHeight(widgetHeight);
         ptl.add(jlo::Component(*main.widgets[EG_TO_PITCH]).withWidth(widgetHeight));
@@ -455,7 +460,7 @@ struct EGPanel : BasePanel
         ptl.add(jlo::Component(*main.widgets[EG_TO_PITCH_TARGET]).withWidth(tgtWidth));
         pl.add(ptl);
         pl.add(jlo::Component(*main.widgetLabels[EG_TO_PITCH])
-                   .withWidth(pwid)
+                   .withWidth(widgetHeight)
                    .withHeight(widgetLabelHeight));
         lo.add(pl);
 
@@ -499,7 +504,6 @@ struct LFOPanel : BasePanel
         lo.add(controlLayoutComponent(LFO_TO_CUTOFF));
 
         static constexpr int tgtWidth{30};
-        auto pwid = widgetHeight + tgtWidth + margin;
         auto pl = jlo::VList().withWidth(tgtWidth);
         auto ptl = jlo::HList().withHeight(widgetHeight);
         ptl.add(jlo::Component(*main.widgets[LFO_TO_PITCH]).withWidth(widgetHeight));
@@ -507,7 +511,7 @@ struct LFOPanel : BasePanel
         ptl.add(jlo::Component(*main.widgets[LFO_TO_PITCH_TARGET]).withWidth(tgtWidth));
         pl.add(ptl);
         pl.add(jlo::Component(*main.widgetLabels[LFO_TO_PITCH])
-                   .withWidth(pwid)
+                   .withWidth(widgetHeight)
                    .withHeight(widgetLabelHeight));
         lo.add(pl);
 
@@ -523,7 +527,7 @@ struct ModPanel : BasePanel
         addLabel(EXP_TO_CUTOFF, rightArrow + "Cutoff");
 
         attach(p, EXP_TO_AMP_LEVEL);
-        addLabel(EXP_TO_AMP_LEVEL, rightArrow + "Amp");
+        addLabel(EXP_TO_AMP_LEVEL, rightArrow + "VCA");
     }
     void resized() override
     {
@@ -544,13 +548,13 @@ struct SettingsPanel : BasePanel
         addLabel(UNI_DETUNE, "Detune");
 
         attach(p, PORTA);
-        addLabel(PORTA, "Porta");
+        addLabel(PORTA, "Portamento");
 
         attach(p, PBEND_RANGE);
-        addLabel(PBEND_RANGE, "PBend");
+        addLabel(PBEND_RANGE, "Bend Range");
 
         attach(p, DAMP_AND_ATTACK);
-        addLabel(DAMP_AND_ATTACK, "DampAtk");
+        addLabel(DAMP_AND_ATTACK, "EG Damping");
 
         attachDiscrete(p, KEY_ASSIGN_MODE);
 
@@ -566,9 +570,10 @@ struct SettingsPanel : BasePanel
 
     void resetUnison()
     {
-        auto uv = main.processor.params[POLY_UNI_MODE]->getCC() <= 63;
+        auto uv = main.processor.params[POLY_UNI_MODE]->getCC() <= 64;
         main.widgets[UNI_DETUNE]->setEnabled(uv);
     }
+
     void resized() override
     {
         auto lo = getLayoutHList();
