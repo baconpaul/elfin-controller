@@ -28,7 +28,7 @@ jobs:
             cmake_args: -Ax64
 
           - os: windows-latest
-            name: windows-x64
+            name: windows-x64-juce7
             cmake_args: -Ax64 -DELFIN_EXTRA_ZIP_NAME="-windows7"
             juce7: true
 
