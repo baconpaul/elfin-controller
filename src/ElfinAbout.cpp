@@ -14,6 +14,7 @@
 #include "ElfinAbout.h"
 #include <sst/plugininfra/version_information.h>
 #include <fstream>
+#include <sst/jucegui/style/StyleSheet.h>
 
 namespace baconpaul::elfin_controller
 {
@@ -28,12 +29,12 @@ void ElfinAbout::paint(juce::Graphics &g)
     g.drawRect(bxBnd);
 
     g.setColour(juce::Colour(0xFF, 0x90, 0x00));
-    g.setFont(juce::FontOptions(30));
+    g.setFont(SST_JUCE_FONT_CTOR(30));
     auto txRec = bxBnd.reduced(8, 4);
     g.drawText("Elfin Controller", txRec, juce::Justification::centredTop);
     txRec = txRec.withTrimmedTop(33);
 
-    g.setFont(juce::FontOptions(18));
+    g.setFont(SST_JUCE_FONT_CTOR(18));
     g.setColour(juce::Colour(0xE0, 0xE0, 0xE0));
     g.drawText(std::string() + "Version : " +
                    sst::plugininfra::VersionInformation::git_implied_display_version + " / " +
@@ -41,7 +42,7 @@ void ElfinAbout::paint(juce::Graphics &g)
                txRec, juce::Justification::centredTop);
     txRec = txRec.withTrimmedTop(50);
 
-    g.setFont(juce::FontOptions(12));
+    g.setFont(SST_JUCE_FONT_CTOR(12));
     std::vector<std::string> msg = {
         "Copyright 2025 Paul Walker (baconpaul) and other authors as described in the Git "
         "Transaction Log",
@@ -62,7 +63,7 @@ void ElfinAbout::paint(juce::Graphics &g)
     }
 
     txRec = txRec.withTrimmedTop(50);
-    g.setFont(juce::FontOptions(18));
+    g.setFont(SST_JUCE_FONT_CTOR(18));
     g.setColour(juce::Colour(0xE0, 0xE0, 0xE0));
     g.drawText("Click anywhere to close", txRec, juce::Justification::centredTop);
 }
