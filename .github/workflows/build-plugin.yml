@@ -61,6 +61,7 @@ jobs:
         if: matrix.juce7
         run: |
           cd libs/JUCE
+          git fetch refs/tags/7.0.12
           git checkout 7.0.12
 
       - name: Build release version
