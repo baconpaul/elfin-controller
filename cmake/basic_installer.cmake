@@ -62,7 +62,8 @@ find_package(Git)
 
 
 string(TIMESTAMP ELFINCONT_DATE "%Y-%m-%d")
-set(ELFINCONT_ZIP elfin-controller-${ELFINCONT_DATE}-${GIT_COMMIT_HASH}-${CMAKE_SYSTEM_NAME}.zip)
+set(ELFINCONT_ZIP elfin-controller-${ELFINCONT_DATE}-${GIT_COMMIT_HASH}-${CMAKE_SYSTEM_NAME}${ELFIN_EXTRA_ZIP_NAME}.zip)
+message(STATUS "Zip File Name is ${ELFINCONT_ZIP}")
 
 if (APPLE)
     message(STATUS "Configuring for mac installer")

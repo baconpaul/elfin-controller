@@ -27,6 +27,11 @@ jobs:
             name: windows-x64
             cmake_args: -Ax64
 
+          - os: windows-latest
+            name: windows-x64-juce7
+            cmake_args: -Ax64 -DELFIN_EXTRA_ZIP_NAME="-windows7"
+            juce7: true
+
           - os: macos-latest
             name: macos
             cmake_args: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -GNinja
@@ -51,6 +56,14 @@ jobs:
         with:
           p12-file-base64: ${{ secrets.MAC_CERTS_P12 }}
           p12-password: ${{ secrets.CERT_PWD }}
+
+      - name: Checkout JUCE 7
+        if: matrix.juce7
+        run: |
+          cd libs/JUCE
+          git fetch origin 
+          git fetch origin -t
+          git checkout 7.0.12
 
       - name: Build release version
         if: github.event_name != 'pull_request'
