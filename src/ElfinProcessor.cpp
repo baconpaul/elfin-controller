@@ -78,6 +78,7 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
 {
     int midiTimeForParams{0};
     int numSamples = buffer.getNumSamples();
+    buffer.clear();
 
     bool anoOn{true}, anoDone{false};
     if (sendAllNotesOff.compare_exchange_strong(anoOn, anoDone))
