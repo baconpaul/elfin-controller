@@ -192,6 +192,7 @@ bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
             if (pos != valueMap.end())
                 p->setValueNotifyingHost(p->getFloatForCC(pos->second));
         }
+        applyPostPatchChangeConstraints();
     }
     else
     {
@@ -227,6 +228,7 @@ bool ElfinControllerAudioProcessor::fromSYX(const std::vector<uint8_t> &d)
             ELFLOG("Unable to map param " << cc << " val=" << va);
         }
     }
+    applyPostPatchChangeConstraints();
     return true;
 }
 
@@ -235,6 +237,15 @@ void ElfinControllerAudioProcessor::randomizePatch()
     for (auto p : params)
     {
         p->setValueNotifyingHost(p->getFloatForCC(rand() % 128));
+    }
+    applyPostPatchChangeConstraints();
+}
+
+void ElfinControllerAudioProcessor::applyPostPatchChangeConstraints()
+{
+    if (params[POLY_UNI_MODE]->getCC() < 64)
+    {
+        params[KEY_ASSIGN_MODE]->setValueNotifyingHost(params[KEY_ASSIGN_MODE]->getFloatForCC(119));
     }
 }
 

@@ -153,6 +153,7 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     bool fromXML(const std::string &s);
     bool fromSYX(const std::vector<uint8_t> &s);
     void randomizePatch();
+    void applyPostPatchChangeConstraints();
 
     std::unique_ptr<juce::PropertiesFile> properties;
 

@@ -572,6 +572,7 @@ struct SettingsPanel : BasePanel
     {
         auto uv = main.processor.params[POLY_UNI_MODE]->getCC() <= 64;
         main.widgets[UNI_DETUNE]->setEnabled(uv);
+        main.widgets[KEY_ASSIGN_MODE]->setEnabled(!uv);
     }
 
     void resized() override
