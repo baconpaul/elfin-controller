@@ -98,10 +98,10 @@ void setupConfiguration()
     elfinConfig[DAMP_AND_ATTACK].midiCCStartLabel = "Off";
 
     auto &kasn = elfinConfig[KEY_ASSIGN_MODE];
-    kasn.discreteRanges.emplace_back(0, 47, "Low ST");
-    kasn.discreteRanges.emplace_back(48, 79, "Duo ST");
-    kasn.discreteRanges.emplace_back(80, 111, "Highest ST");
-    kasn.discreteRanges.emplace_back(112, 127, "Last MT");
+    kasn.discreteRanges.emplace_back(0, 47, "Low");
+    kasn.discreteRanges.emplace_back(48, 79, "Duo");
+    kasn.discreteRanges.emplace_back(80, 111, "High");
+    kasn.discreteRanges.emplace_back(112, 127, "Last");
 
     auto &ptc = elfinConfig[PITCH_TO_CUTOFF];
     ptc.discreteRanges.emplace_back(0, 32, "None");
