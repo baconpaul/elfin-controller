@@ -78,28 +78,43 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
 {
     int midiTimeForParams{0};
     int numSamples = buffer.getNumSamples();
+
     buffer.clear();
 
     bool anoOn{true}, anoDone{false};
+
     if (sendAllNotesOff.compare_exchange_strong(anoOn, anoDone))
     {
         midiTimeForParams = std::min(sampleGap, numSamples - 1);
         midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 123, 0), 0);
     }
+
     int ct{0};
+
     for (auto &p : params)
     {
         bool inOn{true}, onDone{false};
+
         if (p && p->invalid.compare_exchange_strong(inOn, onDone))
         {
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
                                   midiTimeForParams);
+
+            if (p->desc.midiCC == 31) // EG -> VCA
+            {
+                midiMessages.addEvent(juce::MidiMessage::controllerEvent(
+                                          1, 88, p->getCC() < 64 ? 31 : params[COMPANDER]->getCC()),
+                                      midiTimeForParams);
+            }
+
             if (ct == maxMessagesPerSample)
             {
                 ct = 0;
                 midiTimeForParams += midiGapMultiplier * sampleGap;
             }
+
             ct++;
+
             if (midiTimeForParams >= numSamples)
             {
                 break;
@@ -165,12 +180,12 @@ bool ElfinControllerAudioProcessor::fromXML(const std::string &s)
     {
         if (mainElement->getTagName() != "elfin")
         {
-            ELFLOG("Not elfin");
+            ELFLOG("Not Elfin!");
             return false;
         }
         if (mainElement->getIntAttribute("version", -1) != 1)
         {
-            ELFLOG("Not version1");
+            ELFLOG("Not version 1!");
             return false;
         }
 
@@ -247,6 +262,15 @@ void ElfinControllerAudioProcessor::applyPostPatchChangeConstraints()
     if (params[POLY_UNI_MODE]->getCC() < 64)
     {
         params[KEY_ASSIGN_MODE]->setValueNotifyingHost(params[KEY_ASSIGN_MODE]->getFloatForCC(119));
+    }
+
+    if (params[EG_ON_OFF]->getCC() < 64)
+    {
+        params[COMPANDER]->setValueNotifyingHost(0.f);
+    }
+    else
+    {
+        params[COMPANDER]->setValueNotifyingHost(params[COMPANDER]->getFloatForCC(88));
     }
 }
 
