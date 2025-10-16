@@ -73,6 +73,9 @@ struct ElfinMainPanel : sst::jucegui::components::WindowPanel, juce::FileDragAnd
     void showToolTip(ElfinControllerAudioProcessor::float_param_t *, juce::Component *);
     void updateToolTip(ElfinControllerAudioProcessor::float_param_t *);
     void hideToolTip();
+    int hideToolTipIn{-1};
+
+    void diceMenu();
 
     std::unique_ptr<juce::Component> elfinLogo, hideawayLogo;
 

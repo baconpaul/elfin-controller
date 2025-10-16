@@ -94,7 +94,7 @@ struct BasePanel : jcmp::NamedPanel
             p->endChangeGesture();
             if (w)
             {
-                w->main.hideToolTip();
+                w->main.hideToolTipIn = 5;
             }
         };
         w->onIdleHover = [wv = w.get(), q = juce::Component::SafePointer(this), p]()

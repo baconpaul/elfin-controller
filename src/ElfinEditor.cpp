@@ -33,7 +33,10 @@ ElfinControllerAudioProcessorEditor::ElfinControllerAudioProcessorEditor(
     setSize(690 * uiScale, 452 * uiScale);
 }
 
-ElfinControllerAudioProcessorEditor::~ElfinControllerAudioProcessorEditor() {}
+ElfinControllerAudioProcessorEditor::~ElfinControllerAudioProcessorEditor()
+{
+    juce::PopupMenu::dismissAllActiveMenus();
+}
 
 void ElfinControllerAudioProcessorEditor::idle() {}
 

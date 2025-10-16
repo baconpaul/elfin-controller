@@ -97,8 +97,15 @@ ElfinMainPanel::ElfinMainPanel(ElfinControllerAudioProcessor &p) : jcmp::WindowP
     {
         if (w)
         {
-            w->processor.randomizePatch();
+            w->processor.randomizePatch(true);
             w->repaint();
+        };
+    };
+    presetButton->onDiceRMB = [w = juce::Component::SafePointer(this)]()
+    {
+        if (w)
+        {
+            w->diceMenu();
         };
     };
     presetButton->arrowPosition = jcmp::JogUpDownButton::RIGHT_SIDE;
@@ -223,6 +230,15 @@ void ElfinMainPanel::onIdle()
         settingsPanel->resetUnison();
         repaint();
     }
+
+    if (hideToolTipIn >= 0)
+    {
+        hideToolTipIn--;
+        if (hideToolTipIn == 0)
+        {
+            hideToolTip();
+        }
+    }
 }
 
 void ElfinMainPanel::loadPatch()
@@ -298,7 +314,6 @@ void ElfinMainPanel::showToolTip(ElfinControllerAudioProcessor::float_param_t *p
         addChildComponent(*toolTip);
     }
     auto oc = c;
-    toolTip->setVisible(true);
     updateToolTip(p);
     auto bl = c->getBounds().getBottomLeft();
     while (c != this && c->getParentComponent())
@@ -315,6 +330,7 @@ void ElfinMainPanel::showToolTip(ElfinControllerAudioProcessor::float_param_t *p
         bl.x -= toolTip->getWidth() - oc->getWidth();
     }
     toolTip->setTopLeftPosition(bl);
+    toolTip->setVisible(true);
 }
 
 void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t *p)
@@ -339,6 +355,7 @@ void ElfinMainPanel::updateToolTip(ElfinControllerAudioProcessor::float_param_t 
     toolTip->setTooltipTitleAndData(title, rows);
     toolTip->resetSizeFromData();
     toolTip->titleAlignment = juce::Justification::centredTop;
+    toolTip->setVisible(true);
 }
 
 void ElfinMainPanel::hideToolTip()
@@ -500,7 +517,7 @@ void ElfinMainPanel::showElfinMainMenu()
               {
                   if (!w)
                       return;
-                  w->processor.randomizePatch();
+                  w->processor.randomizePatch(true);
               });
     m.addItem("Initialize Patch",
               [w = juce::Component::SafePointer(this)]()
@@ -605,6 +622,38 @@ void ElfinMainPanel::showElfinMainMenu()
     auto rec =
         juce::Rectangle<int>().withWidth(1).withHeight(1).withPosition(localPointToGlobal(where));
     m.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this).withTargetScreenArea(rec));
+}
+
+void ElfinMainPanel::diceMenu()
+{
+    auto p = juce::PopupMenu();
+    p.addSectionHeader("Randomization");
+    p.addSeparator();
+    auto w = juce::Component::SafePointer(this);
+    p.addItem("Randomize Everything",
+              [w]()
+              {
+                  if (w)
+                      w->processor.randomizePatch(false);
+              });
+    p.addItem("Tweak Things a Touch",
+              [w]()
+              {
+                  if (w)
+                      w->processor.randomizePatch(true);
+              });
+    p.addItem("Pick a Random Preset",
+              [w]()
+              {
+                  if (w)
+                  {
+                      auto &pdb = w->presetDataBinding;
+                      auto mx = pdb->getMax();
+                      w->presetDataBinding->setValueFromGUI(rand() % (mx - 1) + 1);
+                      w->repaint();
+                  }
+              });
+    p.showMenuAsync(juce::PopupMenu::Options().withParentComponent(this));
 }
 
 } // namespace baconpaul::elfin_controller

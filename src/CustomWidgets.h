@@ -97,12 +97,25 @@ struct PresetButton : sst::jucegui::components::JogUpDownButton
     }
 
     std::function<void()> onDice = []() { ELFLOG("dice"); };
+    std::function<void()> onDiceRMB = []() { ELFLOG("dice RMB"); };
 
     bool isOverControl(const juce::Point<int> &e) const override
     {
         auto pic = sst::jucegui::components::JogUpDownButton::isOverControl(e);
         // we *want* the hamburger to pop the menu right!
         return pic || /* hamburgerButton().contains(e) || */ diceButton().contains(e);
+    }
+
+    void mouseDown(const juce::MouseEvent &e) override
+    {
+        if (e.mods.isPopupMenu() && diceButton().contains(e.position.toInt()) && onDiceRMB)
+        {
+            onDiceRMB();
+        }
+        else
+        {
+            sst::jucegui::components::JogUpDownButton::mouseDown(e);
+        }
     }
 
     void mouseUp(const juce::MouseEvent &event) override
@@ -113,7 +126,8 @@ struct PresetButton : sst::jucegui::components::JogUpDownButton
         }
         else
         {
-            sst::jucegui::components::JogUpDownButton::mouseUp(event);
+            if (!diceButton().contains(event.position.toInt()))
+                sst::jucegui::components::JogUpDownButton::mouseUp(event);
         }
     }
 
