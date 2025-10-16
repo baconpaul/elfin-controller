@@ -1,4 +1,5 @@
-DO NOT USE THIS ONE for production use
+DO NOT USE THIS ONE for production use unless Dani Mario or Paul
+tells you to.
 
 This is the development/experimental version as we make some changes.
 You want the most recent reviewed nightly, here:
