@@ -100,13 +100,6 @@ void ElfinControllerAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, p->desc.midiCC, p->getCC()),
                                   midiTimeForParams);
 
-            if (p->desc.midiCC == 31) // EG -> VCA
-            {
-                midiMessages.addEvent(juce::MidiMessage::controllerEvent(
-                                          1, 88, p->getCC() < 64 ? 31 : params[COMPANDER]->getCC()),
-                                      midiTimeForParams);
-            }
-
             if (ct == maxMessagesPerSample)
             {
                 ct = 0;
@@ -262,15 +255,6 @@ void ElfinControllerAudioProcessor::applyPostPatchChangeConstraints()
     if (params[POLY_UNI_MODE]->getCC() < 64)
     {
         params[KEY_ASSIGN_MODE]->setValueNotifyingHost(params[KEY_ASSIGN_MODE]->getFloatForCC(119));
-    }
-
-    if (params[EG_ON_OFF]->getCC() < 64)
-    {
-        params[COMPANDER]->setValueNotifyingHost(0.f);
-    }
-    else
-    {
-        params[COMPANDER]->setValueNotifyingHost(params[COMPANDER]->getFloatForCC(88));
     }
 }
 
