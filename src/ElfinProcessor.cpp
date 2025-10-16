@@ -24,7 +24,9 @@ namespace baconpaul::elfin_controller
 {
 //==============================================================================
 ElfinControllerAudioProcessor::ElfinControllerAudioProcessor()
-    : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true))
+    : AudioProcessor(BusesProperties()
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true))
 {
     setupConfiguration();
 
