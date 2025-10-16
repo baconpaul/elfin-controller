@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - next
       - rel_*
       - test/*
     tags:
@@ -155,6 +156,21 @@ jobs:
           create_tag: false
           token: ${{ secrets.GITHUB_TOKEN }}
           release_blurb_file: resources/NightlyBlurb.md
+
+  publish-plugin-experimenta:
+    name: Publish Experimental
+    if: ${{ github.ref == 'refs/heads/next' && github.repository_owner == 'baconpaul' }}
+    runs-on: ubuntu-latest
+    needs: [build_plugin, build_plugin_docker]
+    steps:
+      - name: Upload to Experimental
+        uses: surge-synthesizer/sst-githubactions/upload-to-release@main
+        with:
+          tag: Experimental
+          reuse_tag: true
+          create_tag: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release_blurb_file: resources/ExperimentalBlurb.md
 
   publish-plugin-release:
     name: Publish Release
