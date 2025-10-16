@@ -63,7 +63,9 @@ void setupConfiguration()
         {OSC_LEVEL, {"osc_level", "Osc Level", "Osc Level", 108, 127}},
         {UNI_DETUNE, {"uni_detune", "Unison Detune", "Detune", 109, 0}},
         {POLY_UNI_MODE, {"poly_uni", "Poly Unison Mode", "Mode", 110, 31}},
-        {DAMP_AND_ATTACK, {"damp_and_attack", "EG Damping", "EG Damping", 111, 63}}};
+        {DAMP_AND_ATTACK, {"damp_and_attack", "EG Damping", "EG Damping", 111, 63}},
+
+        {COMPANDER, {"compander", "Compander", "Compander", 88, 0}}};
 
     // Set up the discrete ranges
     auto &ot = elfinConfig[OSC12_TYPE];
@@ -96,6 +98,7 @@ void setupConfiguration()
     elfinConfig[PBEND_RANGE].midiCCEnd = 30;
     elfinConfig[DAMP_AND_ATTACK].midiCCStart = 63;
     elfinConfig[DAMP_AND_ATTACK].midiCCStartLabel = "Off";
+    elfinConfig[COMPANDER].setAsTwoStage("Off", "On");
 
     auto &kasn = elfinConfig[KEY_ASSIGN_MODE];
     kasn.discreteRanges.emplace_back(0, 47, "Low");

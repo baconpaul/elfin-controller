@@ -78,8 +78,8 @@ struct DiscreteParamSource : sst::jucegui::data::Discrete
     }
     void setValueFromGUI(const int &i) override
     {
-        // poly/uni needs an all notes off to avoid hw device
-        // wedging voiuce mgr
+        // poly/uni needs an all notes off to avoid hardware device
+        // from wedging the voice manager
         if (par->desc.streaming_name == "poly_uni")
         {
             panel.processor.sendAllNotesOff = true;

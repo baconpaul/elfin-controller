@@ -58,7 +58,7 @@ struct ElfinDescription
     }
 };
 
-// This enum value doesn't stream. Its just for code readabiligy
+// This enum value doesn't stream. Its just for code readability
 enum ElfinControl
 {
     OSC12_TYPE,
@@ -106,6 +106,8 @@ enum ElfinControl
     POLY_UNI_MODE,
     DAMP_AND_ATTACK,
 
+    COMPANDER,
+
     numElfinControlTypes
 };
 
@@ -117,5 +119,5 @@ void setupConfiguration();
 
 #define ELFLOG(...) std::cout << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__ << std::endl
 
-};     // namespace baconpaul::elfin_controller
+}; // namespace baconpaul::elfin_controller
 #endif // CONFIGURATION_H
