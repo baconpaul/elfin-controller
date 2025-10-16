@@ -94,8 +94,8 @@ struct PresetDataBinding : sst::jucegui::data::Discrete
         auto fp = i - 1;
         if (fp < pm.factoryPatchVector.size())
         {
-            fs::path p{pm.factoryPatchVector[fp].first};
-            p = p / pm.factoryPatchVector[fp].second;
+            fs::path p{pm.factoryPatchVector[fp].second};
+            // p = p / pm.factoryPatchVector[fp].second;
             p = p.replace_extension("");
             return p.u8string() + postfix;
         }

@@ -137,7 +137,16 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
         std::atomic<bool> invalid{false};
 
       protected:
-        void valueChanged(float newValue) override { invalid = true; }
+        void valueChanged(float newValue) override
+        {
+            auto ccv = getCCForFloat(newValue);
+            if (ccv != lastCCValue)
+            {
+                invalid = true;
+            }
+            lastCCValue = ccv;
+        }
+        int8_t lastCCValue{-1};
     };
     typedef ElfinParam float_param_t;
     std::array<float_param_t *, nElfinParams> params{};
@@ -152,7 +161,7 @@ class ElfinControllerAudioProcessor : public juce::AudioProcessor,
     std::string toXML() const;
     bool fromXML(const std::string &s);
     bool fromSYX(const std::vector<uint8_t> &s);
-    void randomizePatch();
+    void randomizePatch(bool justTweak);
     void applyPostPatchChangeConstraints();
 
     std::unique_ptr<juce::PropertiesFile> properties;

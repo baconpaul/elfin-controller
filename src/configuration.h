@@ -119,5 +119,5 @@ void setupConfiguration();
 
 #define ELFLOG(...) std::cout << __FILE__ << ":" << __LINE__ << " " << __VA_ARGS__ << std::endl
 
-}; // namespace baconpaul::elfin_controller
+};     // namespace baconpaul::elfin_controller
 #endif // CONFIGURATION_H

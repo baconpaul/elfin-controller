@@ -39,11 +39,8 @@ struct ParamSource : sst::jucegui::data::Continuous
     bool isBipolar() const override { return par->desc.isBipolar; }
     void setValueFromGUI(const float &f) override
     {
-        if (par->getCC() != par->getCCForFloat(f))
-        {
-            par->setValueNotifyingHost(f);
-            panel.updateToolTip(par);
-        }
+        par->setValueNotifyingHost(f);
+        panel.updateToolTip(par);
     }
     void setValueFromModel(const float &f) override {}
     float getDefaultValue() const override { return par->getFloatForCC(par->desc.midiCCDefault); }

@@ -241,11 +241,27 @@ bool ElfinControllerAudioProcessor::fromSYX(const std::vector<uint8_t> &d)
     return true;
 }
 
-void ElfinControllerAudioProcessor::randomizePatch()
+void ElfinControllerAudioProcessor::randomizePatch(bool justTweak)
 {
-    for (auto p : params)
+    if (justTweak)
     {
-        p->setValueNotifyingHost(p->getFloatForCC(rand() % 128));
+        for (auto p : params)
+        {
+            if (rand() % 10 > 7)
+            {
+                auto ccv = p->getCC();
+                ccv += rand() % 20 - 10;
+                ccv = std::clamp(ccv, 0, 127);
+                p->setValueNotifyingHost(p->getFloatForCC(ccv));
+            }
+        }
+    }
+    else
+    {
+        for (auto p : params)
+        {
+            p->setValueNotifyingHost(p->getFloatForCC(rand() % 128));
+        }
     }
     applyPostPatchChangeConstraints();
 }
