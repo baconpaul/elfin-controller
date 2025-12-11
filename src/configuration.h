@@ -106,8 +106,6 @@ enum ElfinControl
     POLY_UNI_MODE,
     DAMP_AND_ATTACK,
 
-    COMPANDER,
-
     numElfinControlTypes
 };
 
