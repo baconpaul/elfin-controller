@@ -421,7 +421,6 @@ struct EGPanel : BasePanel
         auto tb = attachDiscrete<jcmp::ToggleButton>(p, EG_ON_OFF);
         tb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
         tb->setLabel(rightArrow + "VCA");
-        main.discreteSources[EG_ON_OFF]->andThenOnGui = [this](int v) { toggleCompander(); };
 
         auto rb = attachDiscrete<jcmp::ToggleButton>(p, EG_R);
         rb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
@@ -435,12 +434,6 @@ struct EGPanel : BasePanel
         addLabel(EG_TO_PITCH, rightArrow + "Pitch");
 
         attachDiscrete(p, EG_TO_PITCH_TARGET);
-    }
-
-    void toggleCompander()
-    {
-        auto uv = main.processor.params[EG_ON_OFF]->getCC() >= 64;
-        main.widgets[COMPANDER]->setEnabled(uv);
     }
 
     void resized() override
@@ -560,10 +553,6 @@ struct SettingsPanel : BasePanel
         attach(p, PBEND_RANGE);
         addLabel(PBEND_RANGE, "Bend Range");
 
-        auto cb = attachDiscrete<jcmp::ToggleButton>(p, COMPANDER);
-        cb->setDrawMode(jcmp::ToggleButton::DrawMode::LABELED);
-        cb->setLabel("Compander");
-
         attach(p, DAMP_AND_ATTACK);
         addLabel(DAMP_AND_ATTACK, "EG Damping");
 
@@ -596,37 +585,32 @@ struct SettingsPanel : BasePanel
         vl.add(jlo::Component(*main.widgets[LEGATO]).withHeight(25));
         lo.add(vl);
 
-        std::vector<ElfinControl> contents{
-            ElfinControl::UNI_DETUNE, ElfinControl::PORTA,           ElfinControl::PBEND_RANGE,
-            ElfinControl::COMPANDER,  ElfinControl::DAMP_AND_ATTACK, ElfinControl::KEY_ASSIGN_MODE};
+        std::vector<ElfinControl> contents{ElfinControl::UNI_DETUNE, ElfinControl::PORTA,
+                                           ElfinControl::PBEND_RANGE, ElfinControl::DAMP_AND_ATTACK,
+                                           ElfinControl::KEY_ASSIGN_MODE};
 
         for (auto c : contents)
         {
-            if (c == KEY_ASSIGN_MODE)
-            {
-                lo.add(jlo::Component(*main.widgets[KEY_ASSIGN_MODE])
-                           .withWidth(widgetHeight * 1.5)
-                           .withHeight(widgetHeight + widgetLabelHeight));
-            }
-            else if (c == COMPANDER)
-            {
-                lo.add(jlo::Component(*main.widgets[COMPANDER])
-                           .withWidth(widgetHeight * 1.5)
-                           .withHeight(25));
-            }
-            else
+            if (c != KEY_ASSIGN_MODE)
             {
                 lo.add(controlLayoutComponent(c));
             }
+            else
+            {
+                lo.addGap((widgetHeight * 1.333) + (2 * margin));
+                lo.add(jlo::Component(*main.widgets[KEY_ASSIGN_MODE])
+                           .withWidth(widgetHeight)
+                           .withHeight(widgetHeight + widgetLabelHeight));
+            }
 
             if (c == PORTA)
-                lo.addGap((widgetHeight * 0.5) + (2 * margin));
+                lo.addGap(widgetHeight + (2 * margin));
 
             if (c == PBEND_RANGE)
-                lo.addGap((widgetHeight * 0.5) + (2 * margin));
+                lo.addGap(widgetHeight + (2 * margin));
 
             if (c == DAMP_AND_ATTACK)
-                lo.addGap((widgetHeight * 0.75) + (3 * margin));
+                lo.addGap((widgetHeight * 0.5) + (3 * margin));
         }
 
         lo.doLayout();
